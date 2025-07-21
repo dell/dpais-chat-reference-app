@@ -1,0 +1,48 @@
+# ELI5 Test Document
+
+## Why do cats purr?
+
+Cats purr by vibrating the muscles in their voice box (larynx) and diaphragm while they breathe. This creates a rhythmic vibration that we hear as purring. Cats can purr at a frequency between 25 and 150 Hertz.
+
+Cats purr for different reasons:
+1. When they're happy and content
+2. When they're injured or in pain (purring may help cats heal as the vibration frequency can promote tissue repair)
+3. When they're anxious or stressed (as a self-soothing mechanism)
+4. Kittens and mother cats purr to communicate with each other
+
+The exact biological mechanism involves the neural oscillator in a cat's brain that triggers the rhythmic muscle movements. The purring sound happens both when the cat inhales and exhales, creating that continuous purr sound we love.
+
+## How do airplanes stay in the air?
+
+Airplanes stay in the air because of four main forces: lift, thrust, drag, and weight.
+
+The most important is lift, which is created by the airplane's wings. When an airplane moves forward, air flows over and under the wings. The wings are shaped with a curved top and flatter bottom (called an airfoil). This shape makes air flow faster over the top of the wing than underneath.
+
+According to Bernoulli's principle, faster-moving air creates lower pressure. This creates a pressure difference between the top and bottom of the wing, pushing the wing upward. This upward force is called lift.
+
+The plane needs to move forward fast enough for the wings to create sufficient lift. That's why planes have engines - they provide thrust that pushes the plane forward through the air. Once enough lift is generated to overcome the airplane's weight, it rises into the air.
+
+Planes can't hover in place because they need that forward movement to create lift. Helicopters can hover because they use rotating blades (like spinning wings) to create lift without moving forward.
+
+## How does cryptocurrency work?
+
+Cryptocurrency works using three main technologies: blockchain, cryptography, and a decentralized network.
+
+A blockchain is like a special digital notebook where every transaction is written down. The special thing about this notebook is that thousands of people keep identical copies of it on their computers. This makes it very hard to cheat because everyone can check everyone else's copy.
+
+When someone wants to send cryptocurrency, like Bitcoin, to someone else:
+1. They create a digital message saying "I'm sending X amount to this person"
+2. They sign this message with their private key (a secret code only they know)
+3. This transaction is bundled with others into a "block"
+4. Computers on the network solve complex math puzzles to verify these transactions
+5. Once verified, the block is added to the blockchain
+6. The transaction is complete
+
+Mining is the process where people use computers to solve those math puzzles to verify transactions. They get rewarded with new cryptocurrency for their work, which is how new coins are created.
+
+The system is secure because:
+- Cryptography ensures only the rightful owner can spend their coins
+- The decentralized nature means there's no single point of failure
+- The blockchain's structure makes it extremely difficult to alter past transactions
+
+Unlike traditional money controlled by banks and governments, cryptocurrency operates on a peer-to-peer network with no central authority. 

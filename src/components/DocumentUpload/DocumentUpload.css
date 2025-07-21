@@ -1,0 +1,209 @@
+.document-upload-container {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.upload-section,
+.search-section,
+.documents-section {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+}
+
+.file-input-container {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tags-section {
+  margin-bottom: 1.5rem;
+}
+
+.tag-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  margin-bottom: 4px;
+}
+
+.tag-chip-small {
+  margin-right: 4px;
+}
+
+.submit-button {
+  margin-top: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.search-input-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.search-results {
+  margin-top: 16px;
+}
+
+.document-tags {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.document-content {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+.document-tags-header {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Embedding progress styles */
+.embedding-progress-container {
+  margin: 1.2rem 0;
+  background-color: rgba(var(--paper-color-rgb), 0.8);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(var(--background-color-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add subtle background animation */
+.embedding-progress-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(45deg, 
+    rgba(var(--primary-color-rgb), 0.05) 25%, 
+    rgba(var(--secondary-color-rgb), 0.05) 50%, 
+    rgba(var(--primary-color-rgb), 0.05) 75%
+  );
+  background-size: 400% 400%;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: gradientBg 8s ease infinite;
+  z-index: 0;
+}
+
+/* Ensure content stays above the animation */
+.progress-header, .progress-bar-wrapper, .progress-stats {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes gradientBg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.progress-bar-wrapper {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background-color: rgba(var(--text-color-rgb), 0.1);
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  background-size: 200% 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba(var(--text-color-rgb), 0.7);
+}
+
+.chunk-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color);
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  top: -1px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(var(--accent-color-rgb), 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0);
+  }
+} 

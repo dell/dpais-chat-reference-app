@@ -1,0 +1,19 @@
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  
+  .messages-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .message-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }

@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  pgvector:
+    image: ankane/pgvector
+    container_name: pgvector-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vectordb
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+    networks:
+      - vector-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Mission Transcript Loader
+  mission-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mission-loader
+    depends_on:
+      pgvector:
+        condition: service_healthy
+    environment:
+      - PGVECTOR_CONNECTION_STRING=postgresql://postgres:postgres@pgvector:5432/vectordb
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-http://host.docker.internal:8553/v1}
+      - EMBEDDINGS_MODEL=${EMBEDDINGS_MODEL:-nomic-embed-text}
+      - STARTUP_DELAY=5
+    networks:
+      - vector-net
+
+  # Vector Database API - uses the same pgvector database
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: vector-db-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      pgvector:
+        condition: service_healthy
+    environment:
+      - API_PORT=8000
+      - API_HOST=0.0.0.0
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176
+      - PGVECTOR_CONNECTION_STRING=postgresql://postgres:postgres@pgvector:5432/vectordb
+      - ENABLE_PGVECTOR=true
+      - ENABLE_PINECONE=${ENABLE_PINECONE:-false}
+      - PINECONE_API_KEY=${PINECONE_API_KEY:-}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT:-}
+      - PINECONE_INDEX=${PINECONE_INDEX:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-http://host.docker.internal:8553/v1}
+    volumes:
+      - ../app:/app/app  # For development hot-reloading
+    networks:
+      - vector-net
+
+volumes:
+  pgvector-data:
+
+networks:
+  vector-net: 

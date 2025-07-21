@@ -1,0 +1,62 @@
+.document-references {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.references-title {
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+.document-accordion {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.document-accordion:last-child {
+  border-bottom: none;
+}
+
+.document-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.doc-icon {
+  margin-right: 8px;
+  color: #607d8b;
+}
+
+.doc-name {
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.chunk-count {
+  margin-left: 8px;
+  background-color: #e0f2f1;
+  color: #00796b;
+  font-size: 0.7rem;
+  height: 20px;
+}
+
+.chunk-container {
+  margin-bottom: 8px;
+}
+
+.chunk-header {
+  margin-bottom: 4px;
+}
+
+.chunk-content {
+  background-color: rgba(0, 0, 0, 0.02);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid #b0bec5;
+}
+
+.chunk-divider {
+  margin: 12px 0;
+} 

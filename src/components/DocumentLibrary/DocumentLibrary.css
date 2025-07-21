@@ -1,0 +1,297 @@
+.document-library {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.document-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.search-field {
+  flex-grow: 1;
+}
+
+.session-tags {
+  margin-bottom: 16px;
+}
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.referenced-documents, .tag-references {
+  margin-bottom: 8px;
+}
+
+.tag-autocomplete {
+  margin-top: 8px;
+}
+
+.divider {
+  margin: 8px 0;
+}
+
+.documents-header {
+  margin: 8px 0;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.no-documents {
+  padding: 16px 0;
+  text-align: center;
+}
+
+.documents-list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.document-item {
+  border-radius: 4px;
+  margin-bottom: 4px;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.document-in-chat {
+  background-color: rgba(var(--primary-color-rgb), 0.08);
+  border-left: 3px solid var(--primary-color);
+}
+
+.document-direct-reference {
+  background-color: rgba(var(--secondary-color-rgb), 0.08);
+  border-left: 3px solid var(--secondary-color);
+}
+
+.document-icon {
+  margin-right: 8px;
+  color: var(--text-secondary);
+}
+
+.document-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.document-tag {
+  background-color: var(--paper-color);
+  cursor: pointer;
+}
+
+.document-item .document-actions {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-bottom: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.document-item:hover .document-actions {
+  opacity: 1;
+}
+
+/* Upload Dialog */
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.file-select-button {
+  align-self: flex-start;
+}
+
+.selected-file {
+  font-style: italic;
+}
+
+.tags-heading {
+  margin-top: 8px;
+}
+
+.tag-input {
+  display: flex;
+  gap: 8px;
+}
+
+.tag-field {
+  flex-grow: 1;
+}
+
+.upload-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.upload-tag {
+  background-color: var(--paper-color);
+}
+
+/* Document View */
+.document-tags-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.view-tag {
+  background-color: var(--paper-color);
+  cursor: pointer;
+}
+
+.active-tag {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  border: 1px solid var(--primary-color);
+}
+
+.document-preview {
+  background-color: var(--background-color);
+  padding: 16px;
+  border-radius: 4px;
+  max-height: 400px;
+  overflow: auto;
+  font-family: monospace;
+  white-space: pre-wrap;
+  border: 1px solid var(--border-color);
+}
+
+/* Embedding progress styles */
+.embedding-progress-container {
+  margin: 1.2rem 0;
+  background-color: rgba(var(--paper-color-rgb), 0.8);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(var(--background-color-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add subtle background animation */
+.embedding-progress-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(45deg, 
+    rgba(var(--primary-color-rgb), 0.05) 25%, 
+    rgba(var(--secondary-color-rgb), 0.05) 50%, 
+    rgba(var(--primary-color-rgb), 0.05) 75%
+  );
+  background-size: 400% 400%;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: gradientBg 8s ease infinite;
+  z-index: 0;
+}
+
+/* Ensure content stays above the animation */
+.progress-header, .progress-bar-wrapper, .progress-stats {
+  position: relative;
+  z-index: 1;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.progress-bar-wrapper {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background-color: rgba(var(--text-color-rgb), 0.1);
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  background-size: 200% 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  animation: shimmer 2s infinite linear;
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba(var(--text-color-rgb), 0.7);
+}
+
+.chunk-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color);
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  top: -1px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(var(--accent-color-rgb), 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes gradientBg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+} 

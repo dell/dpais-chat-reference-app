@@ -1,0 +1,9 @@
+data/
+venv/
+.env
+.gitignore
+.git/
+.vscode/
+.idea/
+.DS_Store
+scripts

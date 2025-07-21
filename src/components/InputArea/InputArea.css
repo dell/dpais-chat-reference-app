@@ -1,0 +1,32 @@
+.input-area {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--background-color);
+}
+
+.input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.message-input {
+  flex: 1;
+}
+
+.message-input .MuiOutlinedInput-root {
+  border-radius: 12px;
+}
+
+.send-button {
+  height: 40px;
+  width: 40px;
+}
+
+.input-footer {
+  max-width: 800px;
+  margin: 8px auto 0;
+  text-align: center;
+}

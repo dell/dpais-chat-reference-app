@@ -1,0 +1,22 @@
+# Database
+psycopg2-binary==2.9.9
+pgvector==0.2.3
+
+# Embeddings and LLM
+langchain==0.3.19
+langchain-community==0.0.14
+langchain-openai==0.0.5
+tiktoken==0.5.2
+
+# PDF processing
+PyMuPDF==1.23.22
+langchain-text-splitters==0.0.31
+
+# Utilities
+tqdm==4.66.2
+requests==2.31.0
+numpy==1.26.4
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3 

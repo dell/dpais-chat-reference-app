@@ -1,0 +1,48 @@
+.header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: transparent !important;
+}
+
+.header-toolbar {
+  padding: 12px 24px;
+}
+
+.header-title-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.header-metadata {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.header-chip {
+  height: 24px;
+  font-size: 0.75rem;
+}
+
+/* Make sure ModelSelector fits well in the header */
+.header-metadata .MuiFormControl-root {
+  margin-bottom: 0;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  
+  .header-chip {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+} 

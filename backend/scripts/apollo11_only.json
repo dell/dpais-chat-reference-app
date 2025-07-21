@@ -1,0 +1,13 @@
+{
+  "collections": [
+    {
+      "id": "apollo-11",
+      "name": "Apollo 11 Mission",
+      "description": "Apollo 11 was the first manned mission to land on the Moon. On July 20, 1969, Neil Armstrong and Edwin 'Buzz' Aldrin became the first humans to land on the Moon, while Michael Collins orbited above.",
+      "tags": ["apollo", "nasa", "moon-landing", "neil-armstrong", "buzz-aldrin", "michael-collins", "space", "1969"],
+      "urls": [
+        "https://historycollection.jsc.nasa.gov/JSCHistoryPortal/history/mission_trans/AS11_CM.PDF"
+      ]
+    }
+  ]
+} 

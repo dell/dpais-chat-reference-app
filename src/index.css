@@ -1,0 +1,116 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  /* Light theme variables */
+  --primary-color: #10a37f;
+  --secondary-color: #6366f1;
+  --accent-color: #646cff;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --error-color: #dc2626;
+  --delete-color: rgba(211, 47, 47, 0.7);
+  
+  --background-color: #ffffff;
+  --paper-color: #f9fafb;
+  --sidebar-bg: #f9fafb;
+  
+  --border-color: rgba(0, 0, 0, 0.12);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --active-bg: rgba(0, 0, 0, 0.08);
+  
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --text-disabled: rgba(0, 0, 0, 0.38);
+  
+  color-scheme: light dark;
+  color: var(--text-primary);
+  background-color: var(--background-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark theme variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary-color: #10b981;
+    --secondary-color: #818cf8;
+    --accent-color: #818cf8;
+    --success-color: #22c55e;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --delete-color-dark: rgba(255, 82, 82, 0.8);
+    
+    --background-color: #1e1e2e;
+    --paper-color: #2a2a3c;
+    --sidebar-bg-dark: #1a1a1a;
+    
+    --border-color-dark: rgba(255, 255, 255, 0.12);
+    --hover-bg-dark: rgba(255, 255, 255, 0.08);
+    --active-bg-dark: rgba(255, 255, 255, 0.12);
+    
+    --text-primary-dark: rgba(255, 255, 255, 0.9);
+    --text-secondary-dark: rgba(255, 255, 255, 0.7);
+    --text-disabled-dark: rgba(255, 255, 255, 0.5);
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary-color);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--accent-color);
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--paper-color);
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: var(--primary-color);
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Add any other global styles that need theming */

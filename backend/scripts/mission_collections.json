@@ -1,0 +1,55 @@
+{
+  "collections": [
+    {
+      "id": "apollo-11-preflight-documents",
+      "name": "Apollo 11 Mission Preflight Documents",
+      "description": "Apollo 11 was the first manned mission to land on the Moon. On July 20, 1969, Neil Armstrong and Edwin 'Buzz' Aldrin became the first humans to land on the Moon, while Michael Collins orbited above.",
+      "tags": ["apollo", "nasa", "moon-landing", "neil-armstrong", "buzz-aldrin", "michael-collins", "space", "1969", "preflight"],
+      "urls": [
+        "https://historycollection.jsc.nasa.gov/JSCHistoryPortal/history/mission_trans/AS11_CM.PDF",
+        "https://historycollection.jsc.nasa.gov/JSCHistoryPortal/history/mission_trans/AS11_TEC.PDF",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-press-kit1.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-press-kit2.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-prelaunch-rep1.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-prelaunch-rep2.pdf",
+        "http://www.hq.nasa.gov/office/pao/History/alsj/a11/A11MissionRules.pdf",
+        "http://www.hq.nasa.gov/office/pao/History/alsj/a11/a11EASEP.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/19690020242_in%20this%20decade_a-mission-to-the-moon-1969.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-techsum.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/fo-k-0007v1-sc107_spacecraft_ops_for_countdown.pdf"
+      ]
+    },
+    {
+      "id": "apollo-11-inflight-documents",
+      "name": "Apollo 11 Mission Inflight Documents",
+      "description": "Apollo 11 was the first manned mission to land on the Moon. On July 20, 1969, Neil Armstrong and Edwin 'Buzz' Aldrin became the first humans to land on the Moon, while Michael Collins orbited above.",
+      "tags": ["apollo", "nasa", "moon-landing", "neil-armstrong", "buzz-aldrin", "michael-collins", "space", "1969", "inflight"],
+      "urls": [
+        "https://honeysucklecreek.net/images/pdfs/Apollo_11_Flight_Plan_HSK.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-transcript-technical.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-transcript-pao.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-transcript-onboard.pdf", 
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-fd-mission-log-consolidated.pdf"
+      ]
+    },
+    {
+      "id": "apollo-11-postflight-documents",
+      "name": "Apollo 11 Mission Postflight Documents",
+      "description": "Apollo 11 was the first manned mission to land on the Moon. On July 20, 1969, Neil Armstrong and Edwin 'Buzz' Aldrin became the first humans to land on the Moon, while Michael Collins orbited above.",
+      "tags": ["apollo", "nasa", "moon-landing", "neil-armstrong", "buzz-aldrin", "michael-collins", "space", "1969", "postflight", "saturn-v", "trajectory"],
+      "urls": [
+        "https://ia601509.us.archive.org/27/items/NASA_NTRS_Archive_19710015566/NASA_NTRS_Archive_19710015566.pdf",
+        "https://ia601500.us.archive.org/23/items/NASA_NTRS_Archive_19720018196/NASA_NTRS_Archive_19720018196.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/a11-postlaunch-rep.pdf",
+        "http://history.nasa.gov/alsj/a11/as11psr.pdf",
+        "http://www.hq.nasa.gov/office/pao/History/alsj/a11/a11_tcdb.pdf",
+        "https://ia600307.us.archive.org/32/items/nasa_techdoc_19900066485/19900066485.pdf",
+        "https://ia600304.us.archive.org/13/items/nasa_techdoc_19920075301/19920075301.pdf",
+        "http://history.nasa.gov/alsj/a11/a11flsp.pdf",
+        "http://www.hq.nasa.gov/office/pao/History/alsj/a11/A11CrewTrainingSummaries.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/19740072963_as11-entry-analysis-19700220.pdf",
+        "https://www.nasa.gov/wp-content/uploads/static/history/afj/ap11fj/pdf/hybrid-mission-effects-on-apollo11-loi-abort-plan.pdf"
+      ]
+    }
+  ]
+} 

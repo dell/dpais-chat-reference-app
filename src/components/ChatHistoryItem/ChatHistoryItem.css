@@ -1,0 +1,50 @@
+.history-item {
+  border-radius: 8px !important;
+  margin-bottom: 4px !important;
+  padding: 8px 12px !important;
+  transition: background-color 0.2s ease;
+}
+
+.history-item:hover {
+  background-color: var(--hover-bg, rgba(0, 0, 0, 0.04)) !important;
+}
+
+.history-item.active {
+  background-color: var(--active-bg, rgba(0, 0, 0, 0.08)) !important;
+}
+
+.history-item-text {
+  font-weight: 500 !important;
+  color: var(--text-primary, rgba(0, 0, 0, 0.87)) !important;
+}
+
+.history-item-date {
+  font-size: 0.75rem !important;
+  color: var(--text-secondary, rgba(0, 0, 0, 0.6)) !important;
+}
+
+.delete-button {
+  /* Make it always visible for now to debug */
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--delete-color, rgba(211, 47, 47, 0.7)) !important;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .history-item:hover {
+    background-color: var(--hover-bg-dark, rgba(255, 255, 255, 0.08)) !important;
+  }
+  
+  .history-item.active {
+    background-color: var(--active-bg-dark, rgba(255, 255, 255, 0.12)) !important;
+  }
+  
+  .history-item-text {
+    color: var(--text-primary-dark, rgba(255, 255, 255, 0.9)) !important;
+  }
+  
+  .history-item-date {
+    color: var(--text-secondary-dark, rgba(255, 255, 255, 0.7)) !important;
+  }
+}

@@ -1,0 +1,42 @@
+.thinking-section {
+    padding: 12px !important;
+    margin: 6px 0 10px 0 !important; /* Add bottom margin to separate from message */
+    background-color: #f8f9fa !important;
+    border-left: 4px solid #6366f1 !important;
+    border-radius: 6px !important;
+}
+
+.thinking-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.thinking-header:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+.thinking-icon {
+    color: #6366f1;
+    margin-right: 8px;
+}
+
+.thinking-title {
+    color: #6366f1;
+    font-weight: 600 !important;
+}
+
+.thinking-content {
+    white-space: pre-wrap;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem !important;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
