@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { Box, TextField, IconButton, CircularProgress, Typography } from '@mui/material';
+import { Box, TextField, IconButton, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import StopIcon from '@mui/icons-material/Stop';
 import { v4 as uuidv4 } from 'uuid';
@@ -162,33 +162,82 @@ export const InputArea: React.FC = () => {
           });
         }
         
-        // Prepare messages for API call
-        const state = store.getState().chat;
-        const formattedMessages = state.messages.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.text,
-        }));
+        // Get messages from database instead of Redux store
+        // This ensures we have the correct state without timing issues
+        let formattedMessages: {role: string, content: string}[] = [];
+        let currentSessionDoc = null;
+        
+        try {
+          // Get messages from the database
+          const db = await getDB();
+          currentSessionDoc = await db.sessions.findOne({
+            selector: { sessionId: currentSessionId! }
+          }).exec();
+          
+          if (currentSessionDoc) {
+            // Get message IDs from the session
+            const messageIds = currentSessionDoc.messages || [];
+            
+            // Fetch all messages
+            const messagesQuery = await db.messages.find({
+              selector: {
+                id: { $in: messageIds }
+              }
+            }).exec();
+            
+            // Convert to formatted messages
+            formattedMessages = messagesQuery.map(doc => {
+              const msg = doc.toJSON();
+              return {
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+              };
+            });
+            
+            console.log('DEBUG - Database messages:', JSON.stringify(formattedMessages));
+          }
+        } catch (error) {
+          console.error('Error getting messages from database:', error);
+          
+          // Fallback to Redux store if database query fails
+          const state = store.getState().chat;
+          formattedMessages = state.messages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text,
+          }));
+          
+          console.log('DEBUG - Fallback to Redux messages:', JSON.stringify(formattedMessages));
+          
+          // If we don't have currentSessionDoc yet, try to get it
+          if (!currentSessionDoc) {
+            try {
+              const db = await getDB();
+              currentSessionDoc = await db.sessions.findOne({
+                selector: { sessionId: currentSessionId! }
+              }).exec();
+            } catch (sessionError) {
+              console.error('Error getting session document:', sessionError);
+            }
+          }
+        }
         
         // Check if we should use RAG (document references exist)
-        const documentTags = sessionDoc?.documentTags || [];
+        const documentTags = currentSessionDoc?.documentTags || [];
         const useRAG = documentTags.length > 0;
         
         console.log('===== RAG DETECTION =====');
         console.log('Session document tags:', documentTags);
         console.log('Using RAG mode:', useRAG);
         
-        if (sessionDoc) {
+        if (currentSessionDoc) {
           console.log('Full session data:', JSON.stringify({
-            id: sessionDoc.sessionId,
-            title: sessionDoc.title,
-            messageCount: sessionDoc.messages.length,
-            documentTags: sessionDoc.documentTags,
-            lastUpdated: new Date(sessionDoc.lastUpdated).toISOString()
+            id: currentSessionDoc.sessionId,
+            title: currentSessionDoc.title,
+            messageCount: currentSessionDoc.messages.length,
+            documentTags: currentSessionDoc.documentTags,
+            lastUpdated: new Date(currentSessionDoc.lastUpdated).toISOString()
           }));
         }
-        
-        // Start response timer for metrics
-        const startTime = Date.now();
         
         if (useRAG) {
           console.log('===== STARTING RAG FLOW =====');

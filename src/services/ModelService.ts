@@ -76,8 +76,11 @@ export class ModelService {
             tag = 'NPU';
           } else if (id.startsWith('dNPU/')) {
             tag = 'dNPU';
-          } else {
+          } else if (id.startsWith('CPU/')) {
             tag = 'CPU';
+          } else {
+            // If no compute type prefix, assume it's an NPU model
+            tag = 'NPU';
           }
           
           // Determine if model is a text generation model
@@ -86,12 +89,15 @@ export class ModelService {
           // Extract base model name (without compute prefix)
           let baseName = id;
           const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU/'];
+          let hasPrefix = false;
           for (const prefix of prefixes) {
             if (baseName.startsWith(prefix)) {
               baseName = baseName.substring(prefix.length);
+              hasPrefix = true;
               break;
             }
           }
+          // If no prefix was found, the baseName is already correct (model without compute prefix)
           
           return {
             id: id,

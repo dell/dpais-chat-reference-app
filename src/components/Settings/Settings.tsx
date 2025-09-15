@@ -131,6 +131,7 @@ export interface AppSettings {
   modelCapabilities?: Record<string, string>;
   downloadsPath?: string;
   companyDocumentsEnabled?: boolean;
+  streamEnabled?: boolean;
 }
 
 export const Settings: React.FC<SettingsProps> = ({ 
@@ -194,7 +195,8 @@ export const Settings: React.FC<SettingsProps> = ({
       modelTags: savedSettings.modelTags || {},
       modelCapabilities: savedSettings.modelCapabilities || {},
       downloadsPath: savedSettings.downloadsPath || '',
-      companyDocumentsEnabled: savedSettings.companyDocumentsEnabled || false
+      companyDocumentsEnabled: savedSettings.companyDocumentsEnabled || false,
+      streamEnabled: savedSettings.streamEnabled !== false
     }));
     
     // Set system message
@@ -329,7 +331,8 @@ export const Settings: React.FC<SettingsProps> = ({
       showDocumentSources: settings.showDocumentSources !== false,
       modelTags: settings.modelTags || {},
       modelCapabilities: settings.modelCapabilities || {},
-      companyDocumentsEnabled: settings.companyDocumentsEnabled || false
+      companyDocumentsEnabled: settings.companyDocumentsEnabled || false,
+      streamEnabled: settings.streamEnabled !== false
     };
     
     localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
@@ -577,14 +580,17 @@ export const Settings: React.FC<SettingsProps> = ({
                     {(availableModels.length > 0 ? availableModels : (settings.availableModels || [])).map((modelId) => {
                       // Get display name without compute type prefix and without parameter size
                       let displayName = modelId;
-                      const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU'];
+                      const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU/'];
+                      let hasPrefix = false;
                       
                       for (const prefix of prefixes) {
                         if (displayName.startsWith(prefix)) {
                           displayName = displayName.substring(prefix.length);
+                          hasPrefix = true;
                           break;
                         }
                       }
+                      // If no prefix was found, the displayName is already correct (model without compute prefix)
                       
                       // Extract the model name and parameter size
                       const parts = displayName.split(':');
@@ -605,7 +611,8 @@ export const Settings: React.FC<SettingsProps> = ({
                       const isDefault = settings.defaultModel === modelId;
                       
                       // Get compute location tag if available
-                      const tag = settings.modelTags?.[modelId];
+                      // If tag is not available in settings but we know it doesn't have a prefix, assume NPU
+                      const tag = settings.modelTags?.[modelId] || (!hasPrefix ? 'NPU' : undefined);
                       
                       // Get model capability (if available)
                       const capability = settings.modelCapabilities?.[modelId];
@@ -990,6 +997,32 @@ export const Settings: React.FC<SettingsProps> = ({
                   />
                   <Typography variant="body2" color="text.secondary">
                     When enabled, the assistant will cite document sources in its responses.
+                  </Typography>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+            
+            {/* LLM Response Settings */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6" className="settings-section-title">
+                  <SmartToyIcon sx={{ mr: 1 }} />
+                  Response Settings
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.streamEnabled !== false}
+                        onChange={(e) => handleChange('streamEnabled', e.target.checked)}
+                      />
+                    }
+                    label="Enable Streaming Responses"
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    When enabled, responses will appear word by word as they are generated. When disabled, responses will appear all at once after completion.
                   </Typography>
                 </Box>
               </AccordionDetails>

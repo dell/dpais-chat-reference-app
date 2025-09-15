@@ -32,7 +32,7 @@ export const ModelSelector: React.FC = () => {
     
     useEffect(() => {
         // Load models from settings
-        const fetchModels = (event?: CustomEvent) => {
+        const fetchModels = () => {
             const savedSettings = JSON.parse(localStorage.getItem('chatAppSettings') || '{}');
             const enabledModels = savedSettings.enabledModels || {};
             const defaultModel = savedSettings.defaultModel || 'phi3:phi3-mini-4k';
@@ -80,8 +80,8 @@ export const ModelSelector: React.FC = () => {
         fetchModels();
         
         // Listen for settings changes
-        const handleSettingsUpdate = (event: Event) => {
-            fetchModels(event as CustomEvent);
+        const handleSettingsUpdate = () => {
+            fetchModels();
         };
         
         window.addEventListener('settings-updated', handleSettingsUpdate);
@@ -100,6 +100,7 @@ export const ModelSelector: React.FC = () => {
                 break;
             }
         }
+        // If no prefix was found, the displayName is already correct (model without compute prefix)
         
         // Then parse remaining model ID for the name part
         const parts = displayName.split(':');
