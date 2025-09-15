@@ -92,7 +92,7 @@ export const ModelSelector: React.FC = () => {
     const getModelDisplayName = (modelId: string): string => {
         // First remove compute-type prefix if present
         let displayName = modelId;
-        const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU/'];
+        const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
         
         for (const prefix of prefixes) {
             if (displayName.startsWith(prefix)) {
@@ -126,8 +126,15 @@ export const ModelSelector: React.FC = () => {
         dispatch(setCurrentModel(modelId));
     };
 
-    // Only show enabled models
-    const enabledModels = availableModels.filter(model => model.enabled);
+    // Only show enabled models and sort alphabetically by model name
+    const enabledModels = availableModels
+        .filter(model => model.enabled)
+        .sort((a, b) => {
+            // Get display names without compute type prefix
+            const nameA = getModelDisplayName(a.id).toLowerCase();
+            const nameB = getModelDisplayName(b.id).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
 
     // Helper function to get tag color based on compute location
     const getTagColor = (tag: string): string => {
@@ -138,6 +145,8 @@ export const ModelSelector: React.FC = () => {
                 return 'success';
             case 'GPU':
                 return 'error';
+            case 'iGPU':
+                return 'secondary'; // Use secondary color (purple) for iGPU
             case 'NPU':
                 return 'warning';
             case 'CPU':

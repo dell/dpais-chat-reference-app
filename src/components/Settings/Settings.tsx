@@ -580,7 +580,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     {(availableModels.length > 0 ? availableModels : (settings.availableModels || [])).map((modelId) => {
                       // Get display name without compute type prefix and without parameter size
                       let displayName = modelId;
-                      const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU/'];
+                      const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
                       let hasPrefix = false;
                       
                       for (const prefix of prefixes) {
@@ -626,8 +626,10 @@ export const Settings: React.FC<SettingsProps> = ({
                           case 'public-cloud': return 'info';
                           case 'private-cloud': return 'success';
                           case 'GPU': return 'error';
+                          case 'iGPU': return 'secondary'; // Use secondary color (purple) for iGPU
                           case 'NPU': return 'warning';
                           case 'CPU': return 'default';
+                          case 'dNPU': return 'warning';
                           default: return 'default';
                         }
                       };
