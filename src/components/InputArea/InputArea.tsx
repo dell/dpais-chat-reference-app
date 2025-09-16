@@ -185,14 +185,20 @@ export const InputArea: React.FC = () => {
               }
             }).exec();
             
-            // Convert to formatted messages
-            formattedMessages = messagesQuery.map(doc => {
-              const msg = doc.toJSON();
-              return {
-                role: msg.sender === 'user' ? 'user' : 'assistant',
-                content: msg.text
-              };
-            });
+            // Get the messages in the correct order based on the messageIds array
+            // This ensures we preserve the exact order of messages as stored in the session
+            formattedMessages = messageIds
+              .map(id => {
+                const doc = messagesQuery.find(doc => doc.id === id);
+                if (!doc) return null;
+                
+                const msg = doc.toJSON();
+                return {
+                  role: msg.sender === 'user' ? 'user' : 'assistant',
+                  content: msg.text
+                };
+              })
+              .filter(msg => msg !== null) as {role: string, content: string}[];
             
             console.log('DEBUG - Database messages:', JSON.stringify(formattedMessages));
           }

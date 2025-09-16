@@ -110,12 +110,49 @@ export const WelcomeScreen: React.FC = () => {
         });
         
         // 4. Prepare messages for API call
-        const state = store.getState().chat;
         const selectedModel = currentModel || 'deepseek-r1:7b';
-        const formattedMessages = state.messages.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'assistant',
-          content: msg.text,
-        }));
+        
+        // Get messages from database to ensure correct ordering
+        let formattedMessages: {role: string, content: string}[] = [];
+        
+        try {
+          // Get message IDs from the session
+          const messageIds = sessionDoc.messages || [];
+          
+          // Fetch all messages
+          const messagesQuery = await db.messages.find({
+            selector: {
+              id: { $in: messageIds }
+            }
+          }).exec();
+          
+          // Get the messages in the correct order based on the messageIds array
+          formattedMessages = messageIds
+            .map(id => {
+              const doc = messagesQuery.find(doc => doc.id === id);
+              if (!doc) return null;
+              
+              const msg = doc.toJSON();
+              return {
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+              };
+            })
+            .filter(msg => msg !== null) as {role: string, content: string}[];
+            
+          console.log('DEBUG - WelcomeScreen database messages:', JSON.stringify(formattedMessages));
+        } catch (error) {
+          console.error('Error getting messages from database in WelcomeScreen:', error);
+          
+          // Fallback to Redux store if database query fails
+          const state = store.getState().chat;
+          formattedMessages = state.messages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text,
+          }));
+          
+          console.log('DEBUG - WelcomeScreen fallback to Redux messages:', JSON.stringify(formattedMessages));
+        }
         
         // 5. Check if we should use RAG (document references exist)
         const documentTags = sessionDoc.documentTags || [];
