@@ -86,7 +86,11 @@ export class ModelService {
           }
           
           // Determine if model is a text generation model
-          const isTextToTextModel = model.capability === 'TextToText' || model.capability === 'TextToTextWithTools';
+          // Handle capability as either string or array
+          const capability = Array.isArray(model.capability) && model.capability.length > 0 
+            ? model.capability[0] 
+            : model.capability;
+          const isTextToTextModel = capability === 'TextToText' || capability === 'TextToTextWithTools';
           
           // Extract base model name (without compute prefix)
           let baseName = id;
@@ -104,7 +108,7 @@ export class ModelService {
           return {
             id: id,
             tag: tag,
-            capability: model.capability || null,
+            capability: capability || null,
             isTextToTextModel: isTextToTextModel,
             baseName: baseName
           };

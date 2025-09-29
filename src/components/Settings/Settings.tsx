@@ -132,6 +132,7 @@ export interface AppSettings {
   downloadsPath?: string;
   companyDocumentsEnabled?: boolean;
   streamEnabled?: boolean;
+  documentProcessingBatchSize?: number;
 }
 
 export const Settings: React.FC<SettingsProps> = ({ 
@@ -196,7 +197,8 @@ export const Settings: React.FC<SettingsProps> = ({
       modelCapabilities: savedSettings.modelCapabilities || {},
       downloadsPath: savedSettings.downloadsPath || '',
       companyDocumentsEnabled: savedSettings.companyDocumentsEnabled || false,
-      streamEnabled: savedSettings.streamEnabled !== false
+      streamEnabled: savedSettings.streamEnabled !== false,
+      documentProcessingBatchSize: savedSettings.documentProcessingBatchSize || 20
     }));
     
     // Set system message
@@ -332,7 +334,8 @@ export const Settings: React.FC<SettingsProps> = ({
       modelTags: settings.modelTags || {},
       modelCapabilities: settings.modelCapabilities || {},
       companyDocumentsEnabled: settings.companyDocumentsEnabled || false,
-      streamEnabled: settings.streamEnabled !== false
+      streamEnabled: settings.streamEnabled !== false,
+      documentProcessingBatchSize: settings.documentProcessingBatchSize || 20
     };
     
     localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
@@ -1033,24 +1036,70 @@ export const Settings: React.FC<SettingsProps> = ({
         )}
 
         {activeTab === 'documents' && (
-          <Box sx={{ 
-            mt: 2, 
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 1,
-            height: '400px',
-            overflow: 'hidden'
-          }}>
-            <Typography variant="subtitle1" sx={{ 
-              p: 2, 
-              pb: 1, 
-              borderBottom: '1px solid',
-              borderBottomColor: 'divider'
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Document Processing Settings */}
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6" className="settings-section-title">
+                  <SettingsIcon sx={{ mr: 1 }} />
+                  Document Processing Settings
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Batch Size for Document Processing
+                    <Tooltip title="Number of document chunks to process simultaneously during upload. Higher values may be faster but use more memory.">
+                      <IconButton size="small" sx={{ ml: 1 }}>
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Typography>
+                  <Box sx={{ px: 2 }}>
+                    <Slider
+                      value={settings.documentProcessingBatchSize || 20}
+                      onChange={(e, value) => handleChange('documentProcessingBatchSize', value)}
+                      min={5}
+                      max={2000}
+                      step={5}
+                      marks={[
+                        { value: 5, label: '5' },
+                        { value: 20, label: '20' },
+                        { value: 100, label: '100' },
+                        { value: 500, label: '500' },
+                        { value: 1000, label: '1000' },
+                        { value: 2000, label: '2000' }
+                      ]}
+                      valueLabelDisplay="on"
+                      sx={{ width: '100%' }}
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Current batch size: {settings.documentProcessingBatchSize || 20} chunks per batch
+                  </Typography>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+            
+            {/* Document Library */}
+            <Box sx={{ 
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              height: '400px',
+              overflow: 'hidden'
             }}>
-              Document Library
-            </Typography>
-            <Box sx={{ height: 'calc(100% - 48px)', overflow: 'auto' }}>
-              <DocumentLibrary />
+              <Typography variant="subtitle1" sx={{ 
+                p: 2, 
+                pb: 1, 
+                borderBottom: '1px solid',
+                borderBottomColor: 'divider'
+              }}>
+                Document Library
+              </Typography>
+              <Box sx={{ height: 'calc(100% - 48px)', overflow: 'auto' }}>
+                <DocumentLibrary />
+              </Box>
             </Box>
           </Box>
         )}

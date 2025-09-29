@@ -150,6 +150,7 @@ export async function callRAGCompletion(
     console.log('Initializing LLM with API URL:', apiBaseUrl);
     console.log('Streaming enabled:', streamEnabled);
     
+    
     console.log('LLM initialized, sending request...');
     
     if (streamEnabled) {
@@ -161,6 +162,8 @@ export async function callRAGCompletion(
             console.log('Stream aborted by user');
             return;
           }
+          
+          // Send raw token directly to onToken - let the store handle thinking logic
           onToken(token);
         },
         
@@ -218,8 +221,8 @@ export async function callRAGCompletion(
       const fullText = response.content;
       console.log('Non-streaming response received, length:', fullText.length);
       
-      // Send the full text at once
-      onToken(fullText);
+      // Send the full text directly - let the store handle thinking logic
+      onToken(fullText as string);
       console.log('LLM invoke completed successfully (non-streaming mode)');
     }
     
