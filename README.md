@@ -18,6 +18,7 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
+       <li><a href="#installing-dell-pro-ai-studio">Installing Dell Pro AI Studio</a></li> 
         <li><a href="#project-installation">Project Installation</a></li>
       </ul>
     </li>
@@ -85,6 +86,8 @@
 Before installing the project, you'll need to set up your development environment:
 
 For Dell Pro AI Studio, you may either install dependencies, the Dell AI Framework, and require models manually or by using the Dell Pro AI Studio Command Line Interface (`dpais` CLI) for easier setup.
+
+### Installing Dell Pro AI Studio
 
 #### Option 1: Install Dell Pro AI Studio using the `dpais` CLI.
 
