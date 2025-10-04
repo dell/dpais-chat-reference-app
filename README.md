@@ -18,6 +18,7 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
+       <li><a href="#installing-dell-pro-ai-studio">Installing Dell Pro AI Studio</a></li> 
         <li><a href="#project-installation">Project Installation</a></li>
       </ul>
     </li>
@@ -84,7 +85,25 @@
 
 Before installing the project, you'll need to set up your development environment:
 
-#### Installing Dell Pro AI Studio
+For Dell Pro AI Studio, you may either install dependencies, the Dell AI Framework, and require models manually or by using the Dell Pro AI Studio Command Line Interface (`dpais` CLI) for easier setup.
+
+### Installing Dell Pro AI Studio
+
+#### Option 1: Install Dell Pro AI Studio using the `dpais` CLI.
+
+*Refer to the [installation guide](https://dell.github.io/dell-pro-ai-studio/cli#getting-started-installation-and-initial-setup) for full details on installation and usage.*
+
+```bash
+# Install dpais CLI
+winget install Dell.DPAIS
+
+# Install Dell Pro AI Studio dependencies, Dell AI Framework, and select and install initial models
+dpais init
+
+# Dell Pro AI Studio Chat requires at least a text embeddings model and a text generation to be installed.
+```
+
+#### Option 2: Install Dell Pro AI Studio manually
 
 Before using Dell Pro AI Studio models, ensure you have the following prerequisites installed:
 
@@ -107,8 +126,8 @@ Before using Dell Pro AI Studio models, ensure you have the following prerequisi
    | Model Type | Dell Enterprise Hub Model |
    |------------|------------|
    | Text Generation | [Dell Enterprise Hub: Microsoft Phi-3.5 Mini Instruct](https://dell.huggingface.co/authenticated/models/microsoft/Phi-3.5-mini-instruct) |
-   | Text Generation | [Dell Enterprise Hub: Qwen2 7B Instruct AWQ](https://dell.huggingface.co/authenticated/models/Qwen/Qwen2-7B-Instruct-AWQ) |
-   | Text Generation | [Dell Enterprise Hub: Qwen2.5 1.5B Instruct](https://dell.huggingface.co/authenticated/models/Qwen/Qwen2.5-1.5B-Instruct) |
+   | Text Generation | [Dell Enterprise Hub: IBM Granite 4.0 H Small](https://dell.huggingface.co/authenticated/models/ibm-granite/granite-4.0-h-small) |
+   | Text Generation | [Dell Enterprise Hub: IBM Granite 4.0 H Tiny](https://dell.huggingface.co/authenticated/models/ibm-granite/granite-4.0-h-tiny) |
    | Text Embeddings* | [Dell Enterprise Hub: Nomic Embed Text v1.5](https://dell.huggingface.co/authenticated/models/nomic-ai/nomic-embed-text-v1.5) |
 
    *Required for Document Chat
