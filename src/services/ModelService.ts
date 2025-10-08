@@ -45,7 +45,7 @@ export class ModelService {
       // Add timeout to handle offline scenarios better
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+
       const response = await fetch(`${apiBaseUrl}/models`, {
         method: 'GET',
         headers: {
@@ -54,22 +54,24 @@ export class ModelService {
         },
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched models:', data);
-        
+
         const mappedModels = data.data.map((model: any) => {
           // Extract compute location tag from model ID
           let tag = null;
           const id = model.id;
-          
+
           if (id.startsWith('public-cloud/')) {
             tag = 'public-cloud';
           } else if (id.startsWith('private-cloud/')) {
             tag = 'private-cloud';
+          } else if (id.startsWith('edge/')) {
+            tag = 'edge';
           } else if (id.startsWith('GPU/')) {
             tag = 'GPU';
           } else if (id.startsWith('iGPU/')) {
@@ -84,17 +86,27 @@ export class ModelService {
             // If no compute type prefix, assume it's an NPU model
             tag = 'NPU';
           }
-          
+
           // Determine if model is a text generation model
           // Handle capability as either string or array
-          const capability = Array.isArray(model.capability) && model.capability.length > 0 
-            ? model.capability[0] 
-            : model.capability;
-          const isTextToTextModel = capability === 'TextToText' || capability === 'TextToTextWithTools';
-          
+          let capability = null;
+          let isTextToTextModel = false;
+
+          if (Array.isArray(model.capability) && model.capability.length > 0) {
+            // If capability is an array, check if any element contains TextToText
+            capability = model.capability[0];
+            isTextToTextModel = model.capability.some((cap: string) =>
+              cap && (cap.includes('TextToText') || cap.includes('TextToTextWithTools'))
+            );
+          } else if (typeof model.capability === 'string') {
+            // If capability is a string, check if it contains TextToText
+            capability = model.capability;
+            isTextToTextModel = capability.includes('TextToText') || capability.includes('TextToTextWithTools');
+          }
+
           // Extract base model name (without compute prefix)
           let baseName = id;
-          const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+          const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
           let hasPrefix = false;
           for (const prefix of prefixes) {
             if (baseName.startsWith(prefix)) {
@@ -104,7 +116,7 @@ export class ModelService {
             }
           }
           // If no prefix was found, the baseName is already correct (model without compute prefix)
-          
+
           return {
             id: id,
             tag: tag,
@@ -113,7 +125,7 @@ export class ModelService {
             baseName: baseName
           };
         });
-        
+
         // Deduplicate models by base name, preferring TextToTextWithTools over TextToText
         const modelMap = new Map<string, Model>();
         mappedModels.forEach((model: Model) => {
@@ -122,15 +134,18 @@ export class ModelService {
             modelMap.set(model.id, model);
           } else {
             // If the new model has TextToTextWithTools and existing has only TextToText, replace
-            if (model.capability === 'TextToTextWithTools' && existing.capability === 'TextToText') {
+            if (model.capability && existing.capability &&
+              model.capability.includes('TextToTextWithTools') &&
+              existing.capability.includes('TextToText') &&
+              !existing.capability.includes('TextToTextWithTools')) {
               modelMap.set(model.id, model);
             }
           }
         });
-        
+
         // Convert back to array
         const models = Array.from(modelMap.values());
-        
+
         // Create modelTags and modelCapabilities maps
         const modelTags = models.reduce((acc: Record<string, string>, model: Model) => {
           if (model.tag) {
@@ -138,31 +153,31 @@ export class ModelService {
           }
           return acc;
         }, {});
-        
+
         const modelCapabilities = models.reduce((acc: Record<string, string>, model: Model) => {
           if (model.capability) {
             acc[model.id] = model.capability;
           }
           return acc;
         }, {});
-        
+
         // Get current settings to determine enabled models
         const savedSettings = getSettings();
         const currentEnabledModels = savedSettings.enabledModels || {};
         const updatedEnabledModels = { ...currentEnabledModels };
-        
+
         // Set enabled state based on model capabilities
         models.forEach((model: Model) => {
           // If model is not a text generation model, ensure it's disabled
           if (!model.isTextToTextModel) {
             updatedEnabledModels[model.id] = false;
-          } 
+          }
           // If it is a text generation model and not already in settings, default to enabled
           else if (updatedEnabledModels[model.id] === undefined) {
             updatedEnabledModels[model.id] = true;
           }
         });
-        
+
         return {
           success: true,
           message: `Connection successful! Found ${models.length} models.`,
@@ -185,7 +200,7 @@ export class ModelService {
           message: 'Connection timeout - Dell Pro AI Studio may be starting up or offline'
         };
       }
-      
+
       return {
         success: false,
         message: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -198,19 +213,19 @@ export class ModelService {
    */
   static async initializeModels(): Promise<void> {
     const savedSettings = getSettings();
-    
+
     // Only fetch if we have API settings and no models cached
     if (savedSettings.apiBaseUrl && savedSettings.apiKey && (!savedSettings.availableModels || savedSettings.availableModels.length === 0)) {
       console.log('Fetching models on app initialization...');
-      
+
       let result: FetchModelsResult | null = null;
       let retryCount = 0;
       const maxRetries = 3;
-      
+
       // Retry logic for better offline/startup handling
       while (retryCount < maxRetries && (!result || !result.success)) {
         result = await this.fetchModels(savedSettings.apiBaseUrl, savedSettings.apiKey, true);
-        
+
         if (!result.success && retryCount < maxRetries - 1) {
           console.log(`Model fetch attempt ${retryCount + 1} failed, retrying in 2 seconds...`);
           await new Promise(resolve => setTimeout(resolve, 2000));
@@ -219,7 +234,7 @@ export class ModelService {
           break;
         }
       }
-      
+
       if (result && result.success && result.models) {
         // Update settings with fetched models
         const updatedSettings = {
@@ -229,10 +244,10 @@ export class ModelService {
           modelCapabilities: result.modelCapabilities || {},
           enabledModels: result.updatedEnabledModels || {}
         };
-        
+
         // If no default model is set, set the first enabled text generation model as default
         if (!updatedSettings.defaultModel) {
-          const firstEnabledModel = result.models.find(modelId => 
+          const firstEnabledModel = result.models.find(modelId =>
             result.updatedEnabledModels?.[modelId] === true
           );
           if (firstEnabledModel) {
@@ -240,14 +255,14 @@ export class ModelService {
             console.log('Set default model to:', firstEnabledModel);
           }
         }
-        
+
         saveSettings(updatedSettings);
-        
+
         // Dispatch event to notify components with the updated model info
-        window.dispatchEvent(new CustomEvent('settings-updated', { 
+        window.dispatchEvent(new CustomEvent('settings-updated', {
           detail: { defaultModel: updatedSettings.defaultModel }
         }));
-        
+
         console.log('Models initialized successfully');
       } else {
         console.warn('Failed to fetch models on initialization:', result?.message || 'Unknown error');

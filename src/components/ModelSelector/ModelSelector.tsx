@@ -92,7 +92,7 @@ export const ModelSelector: React.FC = () => {
     const getModelDisplayName = (modelId: string): string => {
         // First remove compute-type prefix if present
         let displayName = modelId;
-        const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+        const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
         
         for (const prefix of prefixes) {
             if (displayName.startsWith(prefix)) {
@@ -143,6 +143,8 @@ export const ModelSelector: React.FC = () => {
                 return 'info';
             case 'private-cloud':
                 return 'success';
+            case 'edge':
+                return 'primary';
             case 'GPU':
                 return 'error';
             case 'iGPU':
