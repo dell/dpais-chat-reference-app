@@ -27,7 +27,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   documentOverlap: 200,
   maxDocumentsRetrieved: 5,
   downloadsPath: '',
-  companyDocumentsEnabled: false
+  companyDocumentsEnabled: false,
+  streamEnabled: true
 };
 
 /**

@@ -17,6 +17,7 @@ import { getDB } from '../db/db';
 import { DocumentChunkDocType } from '../db/types';
 import { DocumentDocType, DocumentMetadata } from '../db/types';
 import { createEmbedding } from '../db/vectorStore';
+import { getSettings } from '../utils/settings';
 import * as PDFJS from 'pdfjs-dist';
 import { read as readXLSX, utils as xlsxUtils } from 'xlsx';
 import * as xmldom from 'xmldom';
@@ -92,8 +93,9 @@ export class DocumentManager {
     let lastUpdateTime = startTime;
     let processingRates: number[] = [];
     
-    // Process chunks in batches of 20
-    const BATCH_SIZE = 20;
+    // Get batch size from settings (default to 20 if not set)
+    const settings = getSettings();
+    const BATCH_SIZE = settings.documentProcessingBatchSize || 20;
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       try {
         const batchStartTime = Date.now();

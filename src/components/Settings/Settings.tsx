@@ -13,13 +13,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  TextField, 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
   Typography,
   Box,
   FormControl,
@@ -72,15 +72,15 @@ const ColorPickerInput: React.FC<{
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
       <Typography variant="body2" sx={{ minWidth: 100 }}>{label}</Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box 
-          sx={{ 
-            width: 36, 
-            height: 36, 
-            borderRadius: 1, 
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: 1,
             bgcolor: color,
             border: '1px solid',
             borderColor: theme => theme.palette.divider
-          }} 
+          }}
         />
         <TextField
           type="text"
@@ -131,17 +131,19 @@ export interface AppSettings {
   modelCapabilities?: Record<string, string>;
   downloadsPath?: string;
   companyDocumentsEnabled?: boolean;
+  streamEnabled?: boolean;
+  documentProcessingBatchSize?: number;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ 
-  open, 
-  onClose, 
+export const Settings: React.FC<SettingsProps> = ({
+  open,
+  onClose,
   onSave,
   currentSettings
 }) => {
   const [settings, setSettings] = useState<AppSettings>(currentSettings);
   const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{success: boolean, message: string} | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean, message: string } | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [activeTab, setActiveTab] = useState('api');
@@ -156,7 +158,7 @@ export const Settings: React.FC<SettingsProps> = ({
     if (open) {
       setSettings(currentSettings);
       setTestResult(null);
-      
+
       // Initialize custom theme if not present
       if (currentSettings.selectedTheme === 'custom' && !currentSettings.customTheme) {
         setSettings({
@@ -164,7 +166,7 @@ export const Settings: React.FC<SettingsProps> = ({
           customTheme: { ...DEFAULT_THEMES.dark } // Start with dark theme as base
         });
       }
-      
+
       // Load vector database counts
       const configs = vectorDbService.getConfigurations();
       setVectorDbCount(configs.length);
@@ -173,7 +175,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
   useEffect(() => {
     const savedSettings = JSON.parse(localStorage.getItem('chatAppSettings') || '{}');
-    
+
     // Load existing settings
     setSettings(prev => ({
       ...prev,
@@ -194,22 +196,24 @@ export const Settings: React.FC<SettingsProps> = ({
       modelTags: savedSettings.modelTags || {},
       modelCapabilities: savedSettings.modelCapabilities || {},
       downloadsPath: savedSettings.downloadsPath || '',
-      companyDocumentsEnabled: savedSettings.companyDocumentsEnabled || false
+      companyDocumentsEnabled: savedSettings.companyDocumentsEnabled || false,
+      streamEnabled: savedSettings.streamEnabled !== false,
+      documentProcessingBatchSize: savedSettings.documentProcessingBatchSize || 20
     }));
-    
+
     // Set system message
     setSystemMessage(savedSettings.systemMessage || '');
-    
+
     // Set document settings
     setDocumentChunkSize(savedSettings.documentChunkSize || 1000);
     setDocumentOverlap(savedSettings.documentOverlap || 200);
     setMaxDocumentsRetrieved(savedSettings.maxDocumentsRetrieved || 5);
-    
+
     // Also set available models from cached settings
     if (savedSettings.availableModels) {
       setAvailableModels(savedSettings.availableModels);
     }
-    
+
     // If we have API settings, try to fetch fresh models
     if (savedSettings.apiBaseUrl && savedSettings.apiKey) {
       // Use setTimeout to ensure this runs after the component is fully mounted
@@ -221,16 +225,16 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const handleChange = (field: keyof AppSettings, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }));
-    
+
     // If changing theme type to custom, initialize customTheme if not present
     if (field === 'selectedTheme' && value === 'custom' && !settings.customTheme) {
-      setSettings(prev => ({ 
-        ...prev, 
-        [field]: value, 
-        customTheme: { ...DEFAULT_THEMES.dark } 
+      setSettings(prev => ({
+        ...prev,
+        [field]: value,
+        customTheme: { ...DEFAULT_THEMES.dark }
       }));
     }
-    
+
     setTestResult(null); // Clear test results on change
   };
 
@@ -253,35 +257,35 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const fetchModels = async (silent = false) => {
     if (!settings.apiBaseUrl || !settings.apiKey) return;
-    
+
     if (!silent) setIsTesting(true);
     if (!silent) setTestResult(null);
-    
+
     try {
       const result = await ModelService.fetchModels(settings.apiBaseUrl, settings.apiKey, silent);
-      
+
       if (result.success && result.models) {
         // Store models in local state
         setAvailableModels(result.models);
-        
+
         if (!silent) {
           setTestResult({
             success: true,
             message: result.message
           });
         }
-        
+
         // Update settings with fetched data
-        const updatedSettings = { 
+        const updatedSettings = {
           ...settings,
           availableModels: result.models,
           modelTags: result.modelTags || {},
           modelCapabilities: result.modelCapabilities || {},
           enabledModels: result.updatedEnabledModels || {}
         };
-        
+
         setSettings(updatedSettings);
-        
+
         // Save to localStorage immediately so ModelSelector can access it
         const savedSettings = JSON.parse(localStorage.getItem('chatAppSettings') || '{}');
         localStorage.setItem('chatAppSettings', JSON.stringify({
@@ -291,7 +295,7 @@ export const Settings: React.FC<SettingsProps> = ({
           modelCapabilities: result.modelCapabilities || {},
           enabledModels: result.updatedEnabledModels || {}
         }));
-        
+
         // Dispatch event to notify components about settings change
         window.dispatchEvent(new CustomEvent('settings-updated'));
       } else {
@@ -329,14 +333,16 @@ export const Settings: React.FC<SettingsProps> = ({
       showDocumentSources: settings.showDocumentSources !== false,
       modelTags: settings.modelTags || {},
       modelCapabilities: settings.modelCapabilities || {},
-      companyDocumentsEnabled: settings.companyDocumentsEnabled || false
+      companyDocumentsEnabled: settings.companyDocumentsEnabled || false,
+      streamEnabled: settings.streamEnabled !== false,
+      documentProcessingBatchSize: settings.documentProcessingBatchSize || 20
     };
-    
+
     localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
-    
+
     // Dispatch a custom event to notify components about settings changes
     window.dispatchEvent(new CustomEvent('settings-updated'));
-    
+
     onSave(updatedSettings);
     onClose();
   };
@@ -344,7 +350,7 @@ export const Settings: React.FC<SettingsProps> = ({
   // Preview of the custom theme
   const renderThemePreview = () => {
     const theme = settings.customTheme || DEFAULT_THEMES.light;
-    
+
     return (
       <Paper
         sx={{
@@ -381,10 +387,10 @@ export const Settings: React.FC<SettingsProps> = ({
             Accent
           </Button>
         </Box>
-        <Box 
-          sx={{ 
-            backgroundColor: theme.background, 
-            p: 1, 
+        <Box
+          sx={{
+            backgroundColor: theme.background,
+            p: 1,
             borderRadius: 1,
             border: '1px solid',
             borderColor: 'rgba(0,0,0,0.1)',
@@ -413,10 +419,10 @@ export const Settings: React.FC<SettingsProps> = ({
   }, [open, activeTab, settings.apiBaseUrl, settings.apiKey]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
@@ -428,17 +434,17 @@ export const Settings: React.FC<SettingsProps> = ({
       }}
     >
       <DialogTitle>Settings</DialogTitle>
-      <DialogContent 
+      <DialogContent
         dividers
-        sx={{ 
+        sx={{
           flex: 1,
           overflow: 'auto', // Enable scrolling
           padding: 2
         }}
       >
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-          <Tabs 
-            value={activeTab} 
+          <Tabs
+            value={activeTab}
             onChange={(e, newValue) => setActiveTab(newValue)}
             variant="scrollable"
             scrollButtons="auto"
@@ -447,9 +453,9 @@ export const Settings: React.FC<SettingsProps> = ({
             <Tab label="Appearance" value="appearance" />
             <Tab label="Assistant" value="assistant" />
             <Tab label="Documents" value="documents" />
-            <Tab 
-              label="Vector Databases" 
-              value="vectorDb" 
+            <Tab
+              label="Vector Databases"
+              value="vectorDb"
               icon={vectorDbCount > 0 ? <CloudIcon fontSize="small" /> : undefined}
               iconPosition="end"
             />
@@ -462,11 +468,11 @@ export const Settings: React.FC<SettingsProps> = ({
             <Typography variant="h6" gutterBottom>
               API Configuration
             </Typography>
-            
+
             <Alert severity="info" sx={{ mb: 2 }}>
               Configure your API settings here. The system uses two separate API endpoints: one for AI generation (LLM API) and one for document retrieval (Backend API).
             </Alert>
-            
+
             {/* LLM API Section */}
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
               LLM API Settings
@@ -474,7 +480,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               These settings control where chat messages and completions are sent for AI text generation.
             </Typography>
-            
+
             <TextField
               label="LLM API Base URL"
               value={settings.apiBaseUrl}
@@ -484,7 +490,7 @@ export const Settings: React.FC<SettingsProps> = ({
               variant="outlined"
               helperText="The URL for LLM text generation (e.g., http://localhost:8553/v1/openai for Dell Pro AI Studio)"
             />
-            
+
             <TextField
               label="API Key"
               value={settings.apiKey}
@@ -495,17 +501,17 @@ export const Settings: React.FC<SettingsProps> = ({
               type="password"
               helperText="API key for authentication (use 'dpais' for Dell Pro AI Studio)"
             />
-            
+
             {/* Backend API Section */}
             <Divider sx={{ my: 2 }} />
-            
+
             <Typography variant="subtitle1" gutterBottom>
               Backend API Settings
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               These settings control document retrieval, embeddings, and other vector database operations.
             </Typography>
-            
+
             <TextField
               label="Backend API URL"
               value={settings.backendApiUrl || 'http://localhost:8000'}
@@ -515,7 +521,7 @@ export const Settings: React.FC<SettingsProps> = ({
               variant="outlined"
               helperText="URL for the document retrieval backend API (e.g., http://localhost:8000)"
             />
-            
+
             <TextField
               label="Embeddings Model"
               value={settings.embeddingsModel || 'nomic-embed-text'}
@@ -525,7 +531,7 @@ export const Settings: React.FC<SettingsProps> = ({
               variant="outlined"
               helperText="Model to use for embeddings (e.g., nomic-embed-text, nomic-embed-text-v1.5)"
             />
-            
+
             {/* Company Documents Toggle */}
             <Box sx={{ mt: 2, mb: 2 }}>
               <FormControlLabel
@@ -542,27 +548,27 @@ export const Settings: React.FC<SettingsProps> = ({
                 Show the Company Documents tab for accessing backend vector databases
               </Typography>
             </Box>
-            
+
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={handleTestConnection}
                 disabled={isTesting || !settings.apiBaseUrl}
                 startIcon={isTesting ? <CircularProgress size={20} /> : null}
               >
                 {isTesting ? 'Testing...' : 'Test Connection'}
               </Button>
-              
+
               {testResult && (
-                <Typography 
-                  variant="body2" 
+                <Typography
+                  variant="body2"
                   color={testResult.success ? 'success.main' : 'error.main'}
                 >
                   {testResult.message}
                 </Typography>
               )}
             </Box>
-            
+
             {/* Available Models Section */}
             {(availableModels.length > 0 || settings.availableModels?.length > 0) && (
               <>
@@ -571,25 +577,28 @@ export const Settings: React.FC<SettingsProps> = ({
                   Available Models
                   {isTesting && <CircularProgress size={16} sx={{ ml: 1 }} />}
                 </Typography>
-                
+
                 <Paper variant="outlined" sx={{ maxHeight: '300px', overflow: 'auto', p: 1 }}>
                   <List dense sx={{ width: '100%' }}>
                     {(availableModels.length > 0 ? availableModels : (settings.availableModels || [])).map((modelId) => {
                       // Get display name without compute type prefix and without parameter size
                       let displayName = modelId;
-                      const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU'];
-                      
+                      const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+                      let hasPrefix = false;
+
                       for (const prefix of prefixes) {
                         if (displayName.startsWith(prefix)) {
                           displayName = displayName.substring(prefix.length);
+                          hasPrefix = true;
                           break;
                         }
                       }
-                      
+                      // If no prefix was found, the displayName is already correct (model without compute prefix)
+
                       // Extract the model name and parameter size
                       const parts = displayName.split(':');
                       let modelName, paramSize;
-                      
+
                       if (parts.length >= 2) {
                         modelName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
                         paramSize = parts[1];
@@ -597,34 +606,38 @@ export const Settings: React.FC<SettingsProps> = ({
                         modelName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
                         paramSize = null;
                       }
-                      
+
                       // Get the current enabled state (default to true if not specified)
                       const enabled = settings.enabledModels?.[modelId] !== false;
-                      
+
                       // Check if this is the default model
                       const isDefault = settings.defaultModel === modelId;
-                      
+
                       // Get compute location tag if available
-                      const tag = settings.modelTags?.[modelId];
-                      
+                      // If tag is not available in settings but we know it doesn't have a prefix, assume NPU
+                      const tag = settings.modelTags?.[modelId] || (!hasPrefix ? 'NPU' : undefined);
+
                       // Get model capability (if available)
                       const capability = settings.modelCapabilities?.[modelId];
-                      
-                      // Check if model can be toggled (only TextToText or TextToTextWithTools models)
-                      const canBeToggled = capability === 'TextToText' || capability === 'TextToTextWithTools';
+
+                      // Check if model can be toggled (only models with TextToText or TextToTextWithTools capability)
+                      const canBeToggled = capability && (capability.includes('TextToText') || capability.includes('TextToTextWithTools'));
 
                       // Helper function to get tag color based on compute location
                       const getTagColor = (tagValue: string): string => {
-                        switch(tagValue) {
+                        switch (tagValue) {
                           case 'public-cloud': return 'info';
                           case 'private-cloud': return 'success';
+                          case 'edge': return 'primary';
                           case 'GPU': return 'error';
+                          case 'iGPU': return 'secondary'; // Use secondary color (purple) for iGPU
                           case 'NPU': return 'warning';
                           case 'CPU': return 'default';
+                          case 'dNPU': return 'warning';
                           default: return 'default';
                         }
                       };
-                      
+
                       return (
                         <ListItem
                           key={modelId}
@@ -644,7 +657,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         >
                           {/* Column 1: Toggle Switch */}
                           <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
-                            <Switch 
+                            <Switch
                               size="small"
                               checked={enabled}
                               disabled={!canBeToggled}
@@ -654,7 +667,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                   [modelId]: e.target.checked
                                 };
                                 handleChange('enabledModels', newEnabledModels);
-                                
+
                                 // If disabling the default model, clear the default
                                 if (!e.target.checked && isDefault) {
                                   handleChange('defaultModel', '');
@@ -662,11 +675,11 @@ export const Settings: React.FC<SettingsProps> = ({
                               }}
                             />
                           </Box>
-                          
+
                           {/* Column 2: Model Name */}
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
+                          <Typography
+                            variant="body2"
+                            sx={{
                               fontWeight: enabled ? 'medium' : 'normal',
                               opacity: canBeToggled ? 1 : 0.7,
                               pl: 1,
@@ -678,18 +691,18 @@ export const Settings: React.FC<SettingsProps> = ({
                           >
                             {modelName}
                           </Typography>
-                          
+
                           {/* Column 3: Tags/Chips */}
-                          <Box sx={{ 
-                            display: 'flex', 
-                            gap: 0.75, 
+                          <Box sx={{
+                            display: 'flex',
+                            gap: 0.75,
                             flexWrap: 'wrap',
                             justifyContent: 'flex-start',
                             alignItems: 'center',
                             pl: 0
                           }}>
                             {tag && (
-                              <Chip 
+                              <Chip
                                 size="small"
                                 label={tag}
                                 color={getTagColor(tag) as any}
@@ -698,7 +711,7 @@ export const Settings: React.FC<SettingsProps> = ({
                               />
                             )}
                             {paramSize && (
-                              <Chip 
+                              <Chip
                                 size="small"
                                 label={paramSize}
                                 color="primary"
@@ -706,8 +719,8 @@ export const Settings: React.FC<SettingsProps> = ({
                                 sx={{ height: 20, fontSize: '0.65rem' }}
                               />
                             )}
-                            {capability && capability !== 'TextToText' && capability !== 'TextToTextWithTools' && (
-                              <Chip 
+                            {capability && !capability.includes('TextToText') && !capability.includes('TextToTextWithTools') && (
+                              <Chip
                                 size="small"
                                 label={capability}
                                 color="default"
@@ -716,9 +729,9 @@ export const Settings: React.FC<SettingsProps> = ({
                               />
                             )}
                           </Box>
-                          
+
                           {/* Column 4: Default Switch */}
-                          <Box sx={{ 
+                          <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: canBeToggled ? 'flex-start' : 'center',
@@ -744,8 +757,8 @@ export const Settings: React.FC<SettingsProps> = ({
                                   />
                                 }
                                 label={
-                                  <Typography 
-                                    variant="caption" 
+                                  <Typography
+                                    variant="caption"
                                     color="secondary"
                                     sx={{ opacity: enabled ? 1 : 0.5 }}
                                   >
@@ -772,7 +785,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <Typography variant="h6" gutterBottom>
               Appearance
             </Typography>
-            
+
             <FormControl fullWidth margin="normal">
               <InputLabel id="theme-select-label">Theme</InputLabel>
               <Select
@@ -787,7 +800,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 <MenuItem value="custom">Custom</MenuItem>
               </Select>
             </FormControl>
-            
+
             {/* Custom Theme Editor - only show if custom theme selected */}
             {settings.selectedTheme === 'custom' && settings.customTheme && (
               <Box sx={{ mt: 2, p: 0 }}>
@@ -797,38 +810,38 @@ export const Settings: React.FC<SettingsProps> = ({
                       <Typography variant="subtitle1" gutterBottom>
                         Custom Theme Editor
                       </Typography>
-                      
+
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" gutterBottom>
                           Start from preset:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button 
-                            size="small" 
-                            variant="outlined" 
+                          <Button
+                            size="small"
+                            variant="outlined"
                             onClick={() => handlePreviewTheme('light')}
                           >
                             Light
                           </Button>
-                          <Button 
-                            size="small" 
-                            variant="outlined" 
+                          <Button
+                            size="small"
+                            variant="outlined"
                             onClick={() => handlePreviewTheme('dark')}
                           >
                             Dark
                           </Button>
-                          <Button 
-                            size="small" 
-                            variant="outlined" 
+                          <Button
+                            size="small"
+                            variant="outlined"
                             onClick={() => handlePreviewTheme('oled')}
                           >
                             OLED
                           </Button>
                         </Box>
                       </Box>
-                      
+
                       <Divider sx={{ mb: 2 }} />
-                      
+
                       <ColorPickerInput
                         label="Primary"
                         color={settings.customTheme.primary}
@@ -902,7 +915,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 />
               </AccordionDetails>
             </Accordion>
-            
+
             {/* Text-to-Speech Settings Section */}
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -953,7 +966,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 </Grid>
               </AccordionDetails>
             </Accordion>
-            
+
             {/* RAG Settings Section */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -976,9 +989,9 @@ export const Settings: React.FC<SettingsProps> = ({
                   <Typography variant="body2" color="text.secondary">
                     When enabled, the assistant will only use information explicitly stated in the retrieved documents and will not use its general knowledge.
                   </Typography>
-                  
+
                   <Divider sx={{ my: 1 }} />
-                  
+
                   <FormControlLabel
                     control={
                       <Switch
@@ -994,39 +1007,111 @@ export const Settings: React.FC<SettingsProps> = ({
                 </Box>
               </AccordionDetails>
             </Accordion>
+
+            {/* LLM Response Settings */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6" className="settings-section-title">
+                  <SmartToyIcon sx={{ mr: 1 }} />
+                  Response Settings
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.streamEnabled !== false}
+                        onChange={(e) => handleChange('streamEnabled', e.target.checked)}
+                      />
+                    }
+                    label="Enable Streaming Responses"
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    When enabled, responses will appear word by word as they are generated. When disabled, responses will appear all at once after completion.
+                  </Typography>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
           </Box>
         )}
 
         {activeTab === 'documents' && (
-          <Box sx={{ 
-            mt: 2, 
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 1,
-            height: '400px',
-            overflow: 'hidden'
-          }}>
-            <Typography variant="subtitle1" sx={{ 
-              p: 2, 
-              pb: 1, 
-              borderBottom: '1px solid',
-              borderBottomColor: 'divider'
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Document Processing Settings */}
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6" className="settings-section-title">
+                  <SettingsIcon sx={{ mr: 1 }} />
+                  Document Processing Settings
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Batch Size for Document Processing
+                    <Tooltip title="Number of document chunks to process simultaneously during upload. Higher values may be faster but use more memory.">
+                      <IconButton size="small" sx={{ ml: 1 }}>
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Typography>
+                  <Box sx={{ px: 2 }}>
+                    <Slider
+                      value={settings.documentProcessingBatchSize || 20}
+                      onChange={(e, value) => handleChange('documentProcessingBatchSize', value)}
+                      min={5}
+                      max={2000}
+                      step={5}
+                      marks={[
+                        { value: 5, label: '5' },
+                        { value: 20, label: '20' },
+                        { value: 100, label: '100' },
+                        { value: 500, label: '500' },
+                        { value: 1000, label: '1000' },
+                        { value: 2000, label: '2000' }
+                      ]}
+                      valueLabelDisplay="on"
+                      sx={{ width: '100%' }}
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Current batch size: {settings.documentProcessingBatchSize || 20} chunks per batch
+                  </Typography>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Document Library */}
+            <Box sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              height: '400px',
+              overflow: 'hidden'
             }}>
-              Document Library
-            </Typography>
-            <Box sx={{ height: 'calc(100% - 48px)', overflow: 'auto' }}>
-              <DocumentLibrary />
+              <Typography variant="subtitle1" sx={{
+                p: 2,
+                pb: 1,
+                borderBottom: '1px solid',
+                borderBottomColor: 'divider'
+              }}>
+                Document Library
+              </Typography>
+              <Box sx={{ height: 'calc(100% - 48px)', overflow: 'auto' }}>
+                <DocumentLibrary />
+              </Box>
             </Box>
           </Box>
         )}
-        
+
         {activeTab === 'vectorDb' && (
           <Box sx={{ mt: 2 }}>
             <VectorDatabaseSettings onConfigurationChange={handleVectorDbConfigChange} />
           </Box>
         )}
       </DialogContent>
-      <DialogActions sx={{ 
+      <DialogActions sx={{
         borderTop: '1px solid',
         borderColor: 'divider',
         padding: 1.5,
@@ -1034,9 +1119,9 @@ export const Settings: React.FC<SettingsProps> = ({
       }}>
         <Button onClick={onClose}>Close</Button>
         {activeTab !== 'documents' && (
-          <Button 
-            onClick={handleSave} 
-            variant="contained" 
+          <Button
+            onClick={handleSave}
+            variant="contained"
             color="primary"
           >
             Save

@@ -131,7 +131,7 @@ const chatSlice = createSlice({
       const token = action.payload;
     
       // Check for mixed content with opening think tag
-      if (token.includes('<think>') && !token.startsWith('<think>')) {
+      if (token.includes('<think>') && token.trim() !== '<think>') {
         const parts = token.split('<think>');
         // Add first part to regular message
         const regularText = parts[0];
@@ -157,7 +157,7 @@ const chatSlice = createSlice({
       }
       
       // Check for mixed content with closing think tag
-      if (state.isThinking && token.includes('</think>') && !token.startsWith('</think>')) {
+      if (state.isThinking && token.includes('</think>') && token.trim() !== '</think>') {
         const parts = token.split('</think>');
         // Add first part to thinking content
         state.thinkingTokens += parts[0];
@@ -188,13 +188,13 @@ const chatSlice = createSlice({
         return;
       }
     
-      // Handle pure tags
-      if (token === '<think>') {
+      // Handle pure tags (with optional whitespace)
+      if (token.trim() === '<think>') {
         state.isThinking = true;
         return;
       }
       
-      if (token === '</think>') {
+      if (token.trim() === '</think>') {
         state.isThinking = false;
         
         // Attach thinking content to last assistant message

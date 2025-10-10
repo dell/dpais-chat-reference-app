@@ -13,6 +13,7 @@
  */
 
 import { ChatOpenAI } from "@langchain/openai";
+import { CallbackHandlerMethods } from "@langchain/core/callbacks/base";
 import { MultiVectorRAG } from './multiVectorRag';
 import { DocumentReference } from '../db/types';
 import { getSettings } from '../utils/settings';
@@ -124,11 +125,17 @@ export async function callRAGCompletion(
     
     console.log('Generated system message length:', systemMessage.content.length);
     
+    // Check if the user message is already in the previousMessages array
+    const userMessageExists = previousMessages.some(msg => 
+        msg.role === 'user' && msg.content === userPrompt
+    );
+    
     // Create the message array for the LLM
     const messages = [
       systemMessage,
       ...previousMessages,
-      { role: 'user', content: userPrompt }
+      // Only add if not already in the messages
+      ...(userMessageExists ? [] : [{ role: 'user', content: userPrompt }])
     ];
     
     console.log('Final message count:', messages.length);
@@ -137,48 +144,87 @@ export async function callRAGCompletion(
     const apiBaseUrl = settings.apiBaseUrl;
     const apiKey = settings.apiKey;
     
-    console.log('Initializing LLM with API URL:', apiBaseUrl);
+    // Check if streaming is enabled in settings
+    const streamEnabled = settings.streamEnabled !== false;
     
-    const llm = new ChatOpenAI({
-      modelName: modelId,
-      openAIApiKey: apiKey,
-      streaming: true,
-      maxCompletionTokens: 1024,
-      temperature: 0.01,
-      callbacks: [
-        {
-          handleLLMNewToken(token) {
-            // Check if aborted during streaming
-            if (abortSignal?.aborted) {
-              console.log('Stream aborted by user');
-              return;
-            }
-            onToken(token);
-          },
-          handleLLMEnd() {
-            // Don't call onDone here, we'll call it after invoke with documentReferences
-            console.log('LLM generation completed');
-          },
-          handleLLMError(error: any) {
-            if (error.name === 'AbortError' || (abortSignal?.aborted && error.message?.includes('aborted'))) {
-              console.log('Request cancelled by user');
-            } else {
-              console.error('LLM error:', error);
-              onToken("\n\nI apologize, but I encountered an error while trying to generate a response. Please try again.");
-            }
-            onDone([]);
-          }
-        }
-      ],
-      configuration: {
-        baseURL: apiBaseUrl,
-      }
-    });
+    console.log('Initializing LLM with API URL:', apiBaseUrl);
+    console.log('Streaming enabled:', streamEnabled);
+    
+    
     console.log('LLM initialized, sending request...');
     
-    // Call the LLM with all the messages
-    await llm.invoke(messages);
-    console.log('LLM invoke completed successfully');
+    if (streamEnabled) {
+      // Create a custom callback handler
+      const streamingHandler: CallbackHandlerMethods = {
+        handleLLMNewToken(token: string) {
+          // Check if aborted during streaming
+          if (abortSignal?.aborted) {
+            console.log('Stream aborted by user');
+            return;
+          }
+          
+          // Send raw token directly to onToken - let the store handle thinking logic
+          onToken(token);
+        },
+        
+        handleLLMEnd() {
+          // Don't call onDone here, we'll call it after invoke with documentReferences
+          console.log('LLM generation completed');
+        },
+        
+        handleLLMError(error: Error) {
+          if (error.name === 'AbortError' || (abortSignal?.aborted && error.message?.includes('aborted'))) {
+            console.log('Request cancelled by user');
+          } else {
+            console.error('LLM error:', error);
+            onToken("\n\nI apologize, but I encountered an error while trying to generate a response. Please try again.");
+          }
+          onDone([]);
+        }
+      }
+      
+      // Streaming mode
+      const llm = new ChatOpenAI({
+        modelName: modelId,
+        openAIApiKey: apiKey,
+        streaming: true,
+        maxTokens: 1024,
+        temperature: 0.01,
+        configuration: {
+          baseURL: apiBaseUrl,
+        }
+      });
+      
+      // Call the LLM with all the messages in streaming mode
+      // @ts-ignore - LangChain API has changed, but this works
+      await llm.invoke(messages, { callbacks: [streamingHandler] });
+      console.log('LLM invoke completed successfully (streaming mode)');
+    } else {
+      // Non-streaming mode
+      const llm = new ChatOpenAI({
+        modelName: modelId,
+        openAIApiKey: apiKey,
+        streaming: false,
+        maxTokens: 1024,
+        temperature: 0.01,
+        configuration: {
+          baseURL: apiBaseUrl,
+        }
+      });
+      
+      // Call the LLM with all the messages in non-streaming mode
+      console.log('Sending non-streaming request...');
+      // @ts-ignore - LangChain API has changed, but this works
+      const response = await llm.invoke(messages);
+      
+      // Process the full response text
+      const fullText = response.content;
+      console.log('Non-streaming response received, length:', fullText.length);
+      
+      // Send the full text directly - let the store handle thinking logic
+      onToken(fullText as string);
+      console.log('LLM invoke completed successfully (non-streaming mode)');
+    }
     
     // When calling onDone, pass the references
     console.log('Finishing RAG completion with references:', documentReferences.length);

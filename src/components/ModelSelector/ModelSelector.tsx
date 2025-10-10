@@ -32,7 +32,7 @@ export const ModelSelector: React.FC = () => {
     
     useEffect(() => {
         // Load models from settings
-        const fetchModels = (event?: CustomEvent) => {
+        const fetchModels = () => {
             const savedSettings = JSON.parse(localStorage.getItem('chatAppSettings') || '{}');
             const enabledModels = savedSettings.enabledModels || {};
             const defaultModel = savedSettings.defaultModel || 'phi3:phi3-mini-4k';
@@ -80,8 +80,8 @@ export const ModelSelector: React.FC = () => {
         fetchModels();
         
         // Listen for settings changes
-        const handleSettingsUpdate = (event: Event) => {
-            fetchModels(event as CustomEvent);
+        const handleSettingsUpdate = () => {
+            fetchModels();
         };
         
         window.addEventListener('settings-updated', handleSettingsUpdate);
@@ -92,7 +92,7 @@ export const ModelSelector: React.FC = () => {
     const getModelDisplayName = (modelId: string): string => {
         // First remove compute-type prefix if present
         let displayName = modelId;
-        const prefixes = ['public-cloud/', 'private-cloud/', 'GPU/', 'NPU/', 'CPU/', 'dNPU/'];
+        const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
         
         for (const prefix of prefixes) {
             if (displayName.startsWith(prefix)) {
@@ -100,6 +100,7 @@ export const ModelSelector: React.FC = () => {
                 break;
             }
         }
+        // If no prefix was found, the displayName is already correct (model without compute prefix)
         
         // Then parse remaining model ID for the name part
         const parts = displayName.split(':');
@@ -125,8 +126,15 @@ export const ModelSelector: React.FC = () => {
         dispatch(setCurrentModel(modelId));
     };
 
-    // Only show enabled models
-    const enabledModels = availableModels.filter(model => model.enabled);
+    // Only show enabled models and sort alphabetically by model name
+    const enabledModels = availableModels
+        .filter(model => model.enabled)
+        .sort((a, b) => {
+            // Get display names without compute type prefix
+            const nameA = getModelDisplayName(a.id).toLowerCase();
+            const nameB = getModelDisplayName(b.id).toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
 
     // Helper function to get tag color based on compute location
     const getTagColor = (tag: string): string => {
@@ -135,8 +143,12 @@ export const ModelSelector: React.FC = () => {
                 return 'info';
             case 'private-cloud':
                 return 'success';
+            case 'edge':
+                return 'primary';
             case 'GPU':
                 return 'error';
+            case 'iGPU':
+                return 'secondary'; // Use secondary color (purple) for iGPU
             case 'NPU':
                 return 'warning';
             case 'CPU':

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,15 @@ import OpenAI from 'openai';
 import { DocumentReference } from '../db/types';
 import { getSettings } from '../utils/settings';
 
-const settings = getSettings();
-
-const openai = new OpenAI({
-    apiKey: settings.apiKey,
-    baseURL: settings.apiBaseUrl,
-    dangerouslyAllowBrowser: true,
-});
+// Initialize OpenAI with current settings
+const getOpenAIClient = () => {
+    const settings = getSettings();
+    return new OpenAI({
+        apiKey: settings.apiKey,
+        baseURL: settings.apiBaseUrl,
+        dangerouslyAllowBrowser: true,
+    });
+};
 
 /**
  * Requests a streaming ChatCompletion using the new 'openai' package with
@@ -51,11 +53,21 @@ export async function callOpenAICompletion(
             content: currentSettings.systemMessage || defaultSystemMessage
         };
         
-        // Add the new user message
+        // Check if the user message is already in the previousMessages array
+        const userMessageExists = previousMessages.some(msg => 
+            msg.role === 'user' && msg.content === userPrompt
+        );
+        
+        console.log('DEBUG - User message exists in previousMessages?', userMessageExists);
+        console.log('DEBUG - User prompt:', userPrompt);
+        console.log('DEBUG - Previous messages:', JSON.stringify(previousMessages));
+        
+        // Build the messages array - only add user prompt if it doesn't exist already
         const messages = [
             systemMessage,
             ...previousMessages,
-            { role: 'user', content: userPrompt }
+            // Only add if not already in the messages
+            ...(userMessageExists ? [] : [{ role: 'user', content: userPrompt }])
         ];
 
         console.log('--------------------------------');
@@ -73,126 +85,181 @@ export async function callOpenAICompletion(
             return;
         }
         
-        // Create a streaming chat completion
-        const stream = await openai.chat.completions.create({
-            model: modelId,
-            messages: messages as any,
-            stream: true,
-            max_completion_tokens: 4096,
-        }, {
-            signal: abortSignal, // Pass the abort signal to the API call
-        });
-        console.log('stream started');
-
-        // Buffer to accumulate partial tags
-        let buffer = '';
-        let inThinkTag = false;
+        // Get current settings to check if streaming is enabled
+        const streamEnabled = currentSettings.streamEnabled !== false;
         
-        // For batching tokens to reduce state updates
-        const tokenBatch: string[] = [];
-        const MAX_BATCH_SIZE = 5; // Adjust based on testing
-        let lastUpdateTime = Date.now();
-        const MIN_UPDATE_INTERVAL = 100; // milliseconds
+        // Get OpenAI client with current settings
+        const openai = getOpenAIClient();
         
-        const processBatch = () => {
-            if (tokenBatch.length > 0) {
-                const batchText = tokenBatch.join('');
-                onToken(batchText);
-                tokenBatch.length = 0; // Clear the array
-                lastUpdateTime = Date.now();
-            }
-        };
-        
-        // Use the async iterator to stream tokens
-        for await (const part of stream) {
-            // Check if aborted during streaming
-            if (abortSignal?.aborted) {
-                console.log('Stream aborted by user');
-                break;
-            }
+        // Create a chat completion (streaming or non-streaming based on settings)
+        if (streamEnabled) {
+            // Streaming mode
+            const stream = await openai.chat.completions.create({
+                model: modelId,
+                messages: messages as any,
+                stream: true,
+                max_completion_tokens: 4096,
+            }, {
+                signal: abortSignal, // Pass the abort signal to the API call
+            });
             
-            const token = part.choices?.[0]?.delta?.content || '';
-            if (!token) continue;
+            console.log('stream started');
             
-            // Add token to buffer
-            buffer += token;
+            // Buffer to accumulate partial tags
+            let buffer = '';
+            let inThinkTag = false;
             
-            // Process tags until no more tags are found
-            let tagProcessed;
-            do {
-                tagProcessed = false;
+            // For batching tokens to reduce state updates
+            const tokenBatch: string[] = [];
+            const MAX_BATCH_SIZE = 5; // Adjust based on testing
+            let lastUpdateTime = Date.now();
+            const MIN_UPDATE_INTERVAL = 100; // milliseconds
+            
+            const processBatch = () => {
+                if (tokenBatch.length > 0) {
+                    const batchText = tokenBatch.join('');
+                    onToken(batchText);
+                    tokenBatch.length = 0; // Clear the array
+                    lastUpdateTime = Date.now();
+                }
+            };
+            
+            // Use the async iterator to stream tokens
+            for await (const part of stream) {
+                // Check if aborted during streaming
+                if (abortSignal?.aborted) {
+                    console.log('Stream aborted by user');
+                    break;
+                }
                 
-                // Check for opening tag
-                if (!inThinkTag) {
-                    const openTagIndex = buffer.indexOf('<think>');
-                    if (openTagIndex !== -1) {
-                        // Content before tag goes to regular message
-                        if (openTagIndex > 0) {
-                            tokenBatch.push(buffer.substring(0, openTagIndex));
-                        }
-                        
-                        // Push the tag
-                        tokenBatch.push('<think>');
-                        
-                        // Update buffer and state
-                        buffer = buffer.substring(openTagIndex + 7);
-                        inThinkTag = true;
-                        tagProcessed = true;
-                        
-                        // Process batch to avoid mixing regular and thinking content
-                        processBatch();
-                    }
-                }
-                // Check for closing tag if we're inside a thinking section
-                else {
-                    const closeTagIndex = buffer.indexOf('</think>');
-                    if (closeTagIndex !== -1) {
-                        // Content before closing tag is part of thinking
-                        if (closeTagIndex > 0) {
-                            tokenBatch.push(buffer.substring(0, closeTagIndex));
-                        }
-                        
-                        // Push closing tag
-                        tokenBatch.push('</think>');
-                        
-                        // Update buffer and state
-                        buffer = buffer.substring(closeTagIndex + 8);
-                        inThinkTag = false;
-                        tagProcessed = true;
-                        
-                        // Process batch to finalize thinking content
-                        processBatch();
-                    }
-                }
-            } while (tagProcessed && buffer.length > 0);
-            
-            // Process remaining buffer content if it doesn't have any more tags
-            if (buffer.length > 0) {
-                if ((!inThinkTag && !buffer.includes('<think>')) || 
-                    (inThinkTag && !buffer.includes('</think>'))) {
-                    tokenBatch.push(buffer);
-                    buffer = '';
+                const token = part.choices?.[0]?.delta?.content || '';
+                if (!token) continue;
+                
+                // Add token to buffer
+                buffer += token;
+                
+                // Process tags until no more tags are found
+                let tagProcessed;
+                do {
+                    tagProcessed = false;
                     
-                    // Send batch if it's large enough or enough time has passed
-                    if (tokenBatch.length >= MAX_BATCH_SIZE || 
-                        Date.now() - lastUpdateTime > MIN_UPDATE_INTERVAL) {
-                        processBatch();
+                    // Check for opening tag
+                    if (!inThinkTag) {
+                        const openTagIndex = buffer.indexOf('<think>');
+                        if (openTagIndex !== -1) {
+                            // Content before tag goes to regular message
+                            if (openTagIndex > 0) {
+                                tokenBatch.push(buffer.substring(0, openTagIndex));
+                            }
+                            
+                            // Push the tag
+                            tokenBatch.push('<think>');
+                            
+                            // Update buffer and state
+                            buffer = buffer.substring(openTagIndex + 7);
+                            inThinkTag = true;
+                            tagProcessed = true;
+                            
+                            // Process batch to avoid mixing regular and thinking content
+                            processBatch();
+                        }
                     }
+                    // Check for closing tag if we're inside a thinking section
+                    else {
+                        const closeTagIndex = buffer.indexOf('</think>');
+                        if (closeTagIndex !== -1) {
+                            // Content before closing tag is part of thinking
+                            if (closeTagIndex > 0) {
+                                tokenBatch.push(buffer.substring(0, closeTagIndex));
+                            }
+                            
+                            // Push closing tag
+                            tokenBatch.push('</think>');
+                            
+                            // Update buffer and state
+                            buffer = buffer.substring(closeTagIndex + 8);
+                            inThinkTag = false;
+                            tagProcessed = true;
+                            
+                            // Process batch to finalize thinking content
+                            processBatch();
+                        }
+                    }
+                } while (tagProcessed && buffer.length > 0);
+                
+                // Process remaining buffer content if it doesn't have any more tags
+                if (buffer.length > 0) {
+                    if ((!inThinkTag && !buffer.includes('<think>')) || 
+                        (inThinkTag && !buffer.includes('</think>'))) {
+                        tokenBatch.push(buffer);
+                        buffer = '';
+                        
+                        // Send batch if it's large enough or enough time has passed
+                        if (tokenBatch.length >= MAX_BATCH_SIZE || 
+                            Date.now() - lastUpdateTime > MIN_UPDATE_INTERVAL) {
+                            processBatch();
+                        }
+                    }
+                    // Otherwise keep in buffer for next iteration
                 }
-                // Otherwise keep in buffer for next iteration
+                
+                // Small delay to prevent UI thrashing
+                await new Promise(resolve => setTimeout(resolve, 5));
             }
             
-            // Small delay to prevent UI thrashing
-            await new Promise(resolve => setTimeout(resolve, 5));
+            // Process any remaining content
+            if (buffer.length > 0) {
+                tokenBatch.push(buffer);
+            }
+            
+            // Final batch process
+            processBatch();
+        } else {
+            // Non-streaming mode
+            const response = await openai.chat.completions.create({
+                model: modelId,
+                messages: messages as any,
+                stream: false,
+                max_tokens: 4096,
+            }, {
+                signal: abortSignal, // Pass the abort signal to the API call
+            });
+            
+            console.log('non-streaming response received');
+            
+            // Process the full response text
+            const fullText = response.choices[0]?.message?.content || '';
+            
+            // Process thinking tags if present
+            let remainingText = fullText;
+            while (remainingText.includes('<think>')) {
+                const beforeThink = remainingText.split('<think>')[0];
+                if (beforeThink) {
+                    onToken(beforeThink);
+                }
+                
+                onToken('<think>');
+                
+                const afterOpenTag = remainingText.split('<think>')[1];
+                if (!afterOpenTag) break;
+                
+                if (afterOpenTag.includes('</think>')) {
+                    const thinkContent = afterOpenTag.split('</think>')[0];
+                    onToken(thinkContent);
+                    onToken('</think>');
+                    
+                    remainingText = afterOpenTag.split('</think>')[1];
+                } else {
+                    onToken(afterOpenTag);
+                    remainingText = '';
+                }
+            }
+            
+            // Send any remaining text
+            if (remainingText) {
+                onToken(remainingText);
+            }
         }
-
-        // Process any remaining content
-        if (buffer.length > 0) {
-            tokenBatch.push(buffer);
-        }
-        
-        // Final batch process
-        processBatch();
 
         // When the stream completes, call onDone with empty array
         onDone([]);
@@ -256,40 +323,26 @@ export async function getTextToSpeech(text: string, model: string = 'kokoro', vo
  */
 export async function summarizeText(text: string, modelId: string): Promise<string> {
     try {
-        // Get settings from localStorage
-        const settings = getSettings();
-        const baseURL = settings.apiBaseUrl;
-        const apiKey = settings.apiKey;
+        // Get OpenAI client with current settings
+        const openai = getOpenAIClient();
         
         console.log('Summarizing text:', { textLength: text.length, model: modelId });
         
         // Create a concise prompt for summarization
         const prompt = "Summarize the following text in a brief, concise way. Please use text only, no markdown. it should be a message that can be read out load to the user.Make the summary conversational and friendly, but focus on the key points. Keep it under 3 sentences if possible:\n\n" + text;
         
-        // Make the API request
-        const response = await fetch(`${baseURL}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: modelId,
-                messages: [
-                    { role: 'system', content: 'You are a helpful assistant that creates concise, clear summaries.' },
-                    { role: 'user', content: prompt }
-                ],
-                max_tokens: 150,
-                temperature: 0.7
-            })
+        // Make the API request using the OpenAI client
+        const response = await openai.chat.completions.create({
+            model: modelId,
+            messages: [
+                { role: 'system', content: 'You are a helpful assistant that creates concise, clear summaries.' },
+                { role: 'user', content: prompt }
+            ],
+            max_tokens: 150,
+            temperature: 0.7
         });
         
-        if (!response.ok) {
-            throw new Error(`Summarization API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        return data.choices[0].message.content.trim();
+        return response.choices[0]?.message?.content?.trim() || '';
     } catch (error) {
         console.error('Error summarizing text:', error);
         throw error;
