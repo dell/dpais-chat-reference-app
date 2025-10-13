@@ -61,10 +61,14 @@ export async function callRAGCompletion(
     
     // Get document-relevant content from the MultiVectorRAG service
     console.log('Fetching relevant documents...');
+    // Get settings to determine how many documents to retrieve
+    const appSettings = getSettings();
+    const maxDocs = appSettings.maxDocumentsRetrieved || 5; // Use setting with fallback
+    console.log(`Using max documents setting: ${maxDocs}`);
     const relevantDocs = await MultiVectorRAG.getRelevantDocuments(
       userPrompt,
       sessionId,
-      5 // Max documents to retrieve
+      maxDocs
     );
     
     console.log(`Retrieved ${relevantDocs.length} relevant documents`);

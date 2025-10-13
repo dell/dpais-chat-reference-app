@@ -322,7 +322,8 @@ export const Settings: React.FC<SettingsProps> = ({
     fetchModels(false);
   };
 
-  const handleSave = () => {
+  // Save settings without closing the dialog - used for auto-save features
+  const saveSettings = (closeAfterSave = false) => {  
     const updatedSettings = {
       ...settings,
       systemMessage,
@@ -344,7 +345,17 @@ export const Settings: React.FC<SettingsProps> = ({
     window.dispatchEvent(new CustomEvent('settings-updated'));
 
     onSave(updatedSettings);
-    onClose();
+    
+    if (closeAfterSave) {
+      onClose();
+    }
+    
+    return updatedSettings;
+  };
+
+  // Handle save button click - saves and closes the dialog
+  const handleSave = () => {
+    saveSettings(true);
   };
 
   // Preview of the custom theme
@@ -538,7 +549,22 @@ export const Settings: React.FC<SettingsProps> = ({
                 control={
                   <Switch
                     checked={settings.companyDocumentsEnabled || false}
-                    onChange={(e) => handleChange('companyDocumentsEnabled', e.target.checked)}
+                    onChange={(e) => {
+                      const newValue = e.target.checked;
+                      handleChange('companyDocumentsEnabled', newValue);
+                      // Auto-save on switch toggle with the new value
+                      const updatedSettings = {
+                        ...settings,
+                        companyDocumentsEnabled: newValue,
+                        systemMessage,
+                        documentChunkSize,
+                        documentOverlap,
+                        maxDocumentsRetrieved
+                      };
+                      localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                      onSave(updatedSettings);
+                      window.dispatchEvent(new CustomEvent('settings-updated'));
+                    }}
                     color="primary"
                   />
                 }
@@ -981,7 +1007,22 @@ export const Settings: React.FC<SettingsProps> = ({
                     control={
                       <Switch
                         checked={settings.strictRagMode === true}
-                        onChange={(e) => handleChange('strictRagMode', e.target.checked)}
+                        onChange={(e) => {
+                          const newValue = e.target.checked;
+                          handleChange('strictRagMode', newValue);
+                          // Auto-save on switch toggle with the new value
+                          const updatedSettings = {
+                            ...settings,
+                            strictRagMode: newValue,
+                            systemMessage,
+                            documentChunkSize,
+                            documentOverlap,
+                            maxDocumentsRetrieved
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }}
                       />
                     }
                     label="Strict RAG Mode"
@@ -996,7 +1037,22 @@ export const Settings: React.FC<SettingsProps> = ({
                     control={
                       <Switch
                         checked={settings.showDocumentSources !== false}
-                        onChange={(e) => handleChange('showDocumentSources', e.target.checked)}
+                        onChange={(e) => {
+                          const newValue = e.target.checked;
+                          handleChange('showDocumentSources', newValue);
+                          // Auto-save on switch toggle with the new value
+                          const updatedSettings = {
+                            ...settings,
+                            showDocumentSources: newValue,
+                            systemMessage,
+                            documentChunkSize,
+                            documentOverlap,
+                            maxDocumentsRetrieved
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }}
                       />
                     }
                     label="Show Document Sources"
@@ -1022,7 +1078,22 @@ export const Settings: React.FC<SettingsProps> = ({
                     control={
                       <Switch
                         checked={settings.streamEnabled !== false}
-                        onChange={(e) => handleChange('streamEnabled', e.target.checked)}
+                        onChange={(e) => {
+                          const newValue = e.target.checked;
+                          handleChange('streamEnabled', newValue);
+                          // Auto-save on switch toggle with the new value
+                          const updatedSettings = {
+                            ...settings,
+                            streamEnabled: newValue,
+                            systemMessage,
+                            documentChunkSize,
+                            documentOverlap,
+                            maxDocumentsRetrieved
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }}
                       />
                     }
                     label="Enable Streaming Responses"
@@ -1059,7 +1130,24 @@ export const Settings: React.FC<SettingsProps> = ({
                   <Box sx={{ px: 2 }}>
                     <Slider
                       value={settings.documentProcessingBatchSize || 20}
-                      onChange={(e, value) => handleChange('documentProcessingBatchSize', value)}
+                      onChange={(_e, value) => {
+                        const newValue = value as number;
+                        handleChange('documentProcessingBatchSize', newValue);
+                        // Auto-save on slider change with the new value
+                        setTimeout(() => {
+                          const updatedSettings = {
+                            ...settings,
+                            documentProcessingBatchSize: newValue,
+                            systemMessage,
+                            documentChunkSize,
+                            documentOverlap,
+                            maxDocumentsRetrieved
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }, 300);
+                      }}
                       min={5}
                       max={2000}
                       step={5}
@@ -1077,6 +1165,51 @@ export const Settings: React.FC<SettingsProps> = ({
                   </Box>
                   <Typography variant="body2" color="text.secondary">
                     Current batch size: {settings.documentProcessingBatchSize || 20} chunks per batch
+                  </Typography>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Typography variant="subtitle2" gutterBottom>
+                    Number of Chunks for RAG
+                    <Tooltip title="Number of document chunks to retrieve for Retrieval Augmented Generation (RAG).">
+                      <IconButton size="small" sx={{ ml: 1 }}>
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Typography>
+                  <Box sx={{ px: 2 }}>
+                    <Slider
+                      value={maxDocumentsRetrieved}
+                      onChange={(_e, value) => {
+                        const newValue = value as number;
+                        setMaxDocumentsRetrieved(newValue);
+                        // Auto-save on slider change with the new value
+                        setTimeout(() => {
+                          const updatedSettings = {
+                            ...settings,
+                            maxDocumentsRetrieved: newValue,
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }, 300);
+                      }}
+                      min={1}
+                      max={20}
+                      step={1}
+                      marks={[
+                        { value: 1, label: '1' },
+                        { value: 5, label: '5' },
+                        { value: 10, label: '10' },
+                        { value: 15, label: '15' },
+                        { value: 20, label: '20' }
+                      ]}
+                      valueLabelDisplay="on"
+                      sx={{ width: '100%' }}
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Current setting: {maxDocumentsRetrieved} chunks will be retrieved for RAG queries
                   </Typography>
                 </Box>
               </AccordionDetails>
