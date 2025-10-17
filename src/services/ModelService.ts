@@ -70,6 +70,8 @@ export class ModelService {
             tag = 'public-cloud';
           } else if (id.startsWith('private-cloud/')) {
             tag = 'private-cloud';
+          } else if (id.startsWith('ai-companion/')) {
+            tag = 'ai-companion';
           } else if (id.startsWith('edge/')) {
             tag = 'edge';
           } else if (id.startsWith('GPU/')) {
@@ -106,7 +108,7 @@ export class ModelService {
 
           // Extract base model name (without compute prefix)
           let baseName = id;
-          const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+          const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
           let hasPrefix = false;
           for (const prefix of prefixes) {
             if (baseName.startsWith(prefix)) {

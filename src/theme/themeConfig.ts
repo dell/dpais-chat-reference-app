@@ -35,7 +35,7 @@ export const DEFAULT_THEMES = {
     text: '#213547',
     accent: '#646cff'
   } as ThemeConfig,
-  
+
   dark: {
     mode: 'dark',
     primary: '#97DCF4',
@@ -45,7 +45,7 @@ export const DEFAULT_THEMES = {
     text: '#e2e8f0',
     accent: '#818cf8'
   } as ThemeConfig,
-  
+
   oled: {
     mode: 'dark',
     primary: '#61C1EB',
@@ -62,7 +62,7 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
   // Helper to convert hex to rgb
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result 
+    return result
       ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
       : '0, 0, 0';
   };
@@ -76,7 +76,7 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
     root.style.setProperty('--paper-color', config.paper);
     root.style.setProperty('--text-color', config.text);
     root.style.setProperty('--accent-color', config.accent);
-    
+
     // Add RGB values for opacity support
     root.style.setProperty('--primary-color-rgb', hexToRgb(config.primary));
     root.style.setProperty('--secondary-color-rgb', hexToRgb(config.secondary));
@@ -84,7 +84,7 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
     root.style.setProperty('--paper-color-rgb', hexToRgb(config.paper));
     root.style.setProperty('--text-color-rgb', hexToRgb(config.text));
     root.style.setProperty('--accent-color-rgb', hexToRgb(config.accent));
-    
+
     // Add contrast variables
     root.style.setProperty('--text-on-primary', '#ffffff');
     root.style.setProperty('--border-color', config.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)');
@@ -107,6 +107,43 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
       },
       text: {
         primary: config.text,
+      },
+      // Custom colors for compute types
+      computePublicCloud: {
+        main: '#1976d2', // Blue
+        contrastText: '#ffffff',
+      },
+      computePrivateCloud: {
+        main: '#9c27b0', // Purple
+        contrastText: '#ffffff',
+      },
+      computeAiCompanion: {
+        main: '#2e7d32', // Green
+        contrastText: '#ffffff',
+      },
+      computeEdge: {
+        main: '#0288d1', // Light Blue
+        contrastText: '#ffffff',
+      },
+      computeGPU: {
+        main: '#ed6c02', // Orange
+        contrastText: '#ffffff',
+      },
+      computeIGPU: {
+        main: '#00897b', // Teal/Cyan - distinct from GPU orange
+        contrastText: '#ffffff',
+      },
+      computeNPU: {
+        main: '#d32f2f', // Red
+        contrastText: '#ffffff',
+      },
+      computeCPU: {
+        main: '#757575', // Grey
+        contrastText: '#ffffff',
+      },
+      computeDNPU: {
+        main: '#c2185b', // Pink
+        contrastText: '#ffffff',
       },
     },
     typography: {

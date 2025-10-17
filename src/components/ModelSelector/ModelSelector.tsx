@@ -18,18 +18,18 @@ import { Select, MenuItem, FormControl, InputLabel, Box, Chip, Typography } from
 import { useAppSelector, useAppDispatch, setCurrentModel } from '../../store/store';
 
 interface Model {
-  id: string;
-  name: string;
-  enabled: boolean;
-  isDefault?: boolean;
-  tag?: string;
+    id: string;
+    name: string;
+    enabled: boolean;
+    isDefault?: boolean;
+    tag?: string;
 }
 
 export const ModelSelector: React.FC = () => {
     const dispatch = useAppDispatch();
     const selectedModel = useAppSelector(state => state.chat.currentModel);
     const [availableModels, setAvailableModels] = useState<Model[]>([]);
-    
+
     useEffect(() => {
         // Load models from settings
         const fetchModels = () => {
@@ -37,7 +37,7 @@ export const ModelSelector: React.FC = () => {
             const enabledModels = savedSettings.enabledModels || {};
             const defaultModel = savedSettings.defaultModel || 'phi3:phi3-mini-4k';
             const modelTags = savedSettings.modelTags || {};
-            
+
             // Get the list of models
             if (savedSettings.availableModels && savedSettings.availableModels.length > 0) {
                 const models: Model[] = savedSettings.availableModels.map((modelId: string) => ({
@@ -48,15 +48,15 @@ export const ModelSelector: React.FC = () => {
                     tag: modelTags[modelId] || null
                 }));
                 setAvailableModels(models);
-                
+
                 // Check if current selected model is valid
                 const isCurrentModelValid = selectedModel && models.some(model => model.id === selectedModel && model.enabled);
-                
+
                 // Prioritize setting model based on these conditions:
                 // 1. If current model is invalid or empty, and we have a default model that exists in available models
                 // 2. If current model is invalid or empty, select first enabled model
                 // 3. If current model is the old fallback, replace it with the new default
-                
+
                 if (defaultModel && models.some(model => model.id === defaultModel && model.enabled)) {
                     // If we have a valid default model and (no current selection OR current selection is invalid OR it's the old fallback)
                     if (!selectedModel || !isCurrentModelValid || selectedModel === 'deepseek-r1:7b' || selectedModel === 'phi3:phi3-mini-4k') {
@@ -76,24 +76,24 @@ export const ModelSelector: React.FC = () => {
                 setAvailableModels([]);
             }
         };
-        
+
         fetchModels();
-        
+
         // Listen for settings changes
         const handleSettingsUpdate = () => {
             fetchModels();
         };
-        
+
         window.addEventListener('settings-updated', handleSettingsUpdate);
         return () => window.removeEventListener('settings-updated', handleSettingsUpdate);
     }, [dispatch, selectedModel]);
-    
+
     // Convert model ID to display name
     const getModelDisplayName = (modelId: string): string => {
         // First remove compute-type prefix if present
         let displayName = modelId;
-        const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
-        
+        const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+
         for (const prefix of prefixes) {
             if (displayName.startsWith(prefix)) {
                 displayName = displayName.substring(prefix.length);
@@ -101,7 +101,7 @@ export const ModelSelector: React.FC = () => {
             }
         }
         // If no prefix was found, the displayName is already correct (model without compute prefix)
-        
+
         // Then parse remaining model ID for the name part
         const parts = displayName.split(':');
         if (parts.length >= 2) {
@@ -111,7 +111,7 @@ export const ModelSelector: React.FC = () => {
         }
         return displayName;
     };
-    
+
     // Extract parameter size from model ID if present
     const getParameterSize = (modelId: string): string | null => {
         const parts = modelId.split(':');
@@ -138,31 +138,33 @@ export const ModelSelector: React.FC = () => {
 
     // Helper function to get tag color based on compute location
     const getTagColor = (tag: string): string => {
-        switch(tag) {
+        switch (tag) {
             case 'public-cloud':
-                return 'info';
+                return 'computePublicCloud'; // Blue
             case 'private-cloud':
-                return 'success';
+                return 'computePrivateCloud'; // Purple
+            case 'ai-companion':
+                return 'computeAiCompanion'; // Green
             case 'edge':
-                return 'primary';
+                return 'computeEdge'; // Light Blue
             case 'GPU':
-                return 'error';
+                return 'computeGPU'; // Orange
             case 'iGPU':
-                return 'secondary'; // Use secondary color (purple) for iGPU
+                return 'computeIGPU'; // Teal/Cyan
             case 'NPU':
-                return 'warning';
+                return 'computeNPU'; // Red
             case 'CPU':
-                return 'default';
+                return 'computeCPU'; // Grey
             case 'dNPU':
-                return 'warning';
+                return 'computeDNPU'; // Pink
             default:
                 return 'default';
         }
     };
 
     return (
-        <FormControl 
-            variant="outlined" 
+        <FormControl
+            variant="outlined"
             size="small"
             sx={{
                 minWidth: 150,
@@ -198,15 +200,15 @@ export const ModelSelector: React.FC = () => {
                     const paramSize = getParameterSize(model.id);
                     return (
                         <MenuItem key={model.id} value={model.id}>
-                            <Box sx={{ 
-                                width: '100%', 
-                                display: 'flex', 
+                            <Box sx={{
+                                width: '100%',
+                                display: 'flex',
                                 alignItems: 'center',
                                 flexWrap: 'nowrap'
                             }}>
-                                <Typography 
-                                    variant="body2" 
-                                    sx={{ 
+                                <Typography
+                                    variant="body2"
+                                    sx={{
                                         fontWeight: selectedModel === model.id ? 'bold' : 'medium',
                                         flexShrink: 0,
                                         marginRight: 1,
@@ -215,23 +217,23 @@ export const ModelSelector: React.FC = () => {
                                 >
                                     {model.name}
                                 </Typography>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    gap: 0.5, 
+                                <Box sx={{
+                                    display: 'flex',
+                                    gap: 0.5,
                                     flexWrap: 'wrap',
                                     flex: 1,
                                     justifyContent: 'flex-end'
                                 }}>
                                     {model.isDefault && (
-                                        <Chip 
-                                            size="small" 
-                                            label="Default" 
-                                            color="secondary" 
-                                            variant="outlined" 
-                                            sx={{ 
-                                                height: 18, 
+                                        <Chip
+                                            size="small"
+                                            label="Default"
+                                            color="secondary"
+                                            variant="outlined"
+                                            sx={{
+                                                height: 18,
                                                 fontSize: '0.65rem',
-                                                '& .MuiChip-label': { 
+                                                '& .MuiChip-label': {
                                                     px: 0.8,
                                                     py: 0
                                                 }
@@ -239,15 +241,15 @@ export const ModelSelector: React.FC = () => {
                                         />
                                     )}
                                     {model.tag && (
-                                        <Chip 
-                                            size="small" 
-                                            label={model.tag} 
+                                        <Chip
+                                            size="small"
+                                            label={model.tag}
                                             color={getTagColor(model.tag) as any}
-                                            variant="outlined" 
-                                            sx={{ 
-                                                height: 18, 
+                                            variant="outlined"
+                                            sx={{
+                                                height: 18,
                                                 fontSize: '0.65rem',
-                                                '& .MuiChip-label': { 
+                                                '& .MuiChip-label': {
                                                     px: 0.8,
                                                     py: 0
                                                 }
@@ -255,15 +257,15 @@ export const ModelSelector: React.FC = () => {
                                         />
                                     )}
                                     {paramSize && (
-                                        <Chip 
-                                            size="small" 
-                                            label={paramSize} 
+                                        <Chip
+                                            size="small"
+                                            label={paramSize}
                                             color="primary"
-                                            variant="outlined" 
-                                            sx={{ 
-                                                height: 18, 
+                                            variant="outlined"
+                                            sx={{
+                                                height: 18,
                                                 fontSize: '0.65rem',
-                                                '& .MuiChip-label': { 
+                                                '& .MuiChip-label': {
                                                     px: 0.8,
                                                     py: 0
                                                 }
