@@ -609,7 +609,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     {(availableModels.length > 0 ? availableModels : (settings.availableModels || [])).map((modelId) => {
                       // Get display name without compute type prefix and without parameter size
                       let displayName = modelId;
-                      const prefixes = ['public-cloud/', 'private-cloud/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
+                      const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
                       let hasPrefix = false;
 
                       for (const prefix of prefixes) {
@@ -652,14 +652,15 @@ export const Settings: React.FC<SettingsProps> = ({
                       // Helper function to get tag color based on compute location
                       const getTagColor = (tagValue: string): string => {
                         switch (tagValue) {
-                          case 'public-cloud': return 'info';
-                          case 'private-cloud': return 'success';
-                          case 'edge': return 'primary';
-                          case 'GPU': return 'error';
-                          case 'iGPU': return 'secondary'; // Use secondary color (purple) for iGPU
-                          case 'NPU': return 'warning';
-                          case 'CPU': return 'default';
-                          case 'dNPU': return 'warning';
+                          case 'public-cloud': return 'computePublicCloud'; // Blue
+                          case 'private-cloud': return 'computePrivateCloud'; // Purple
+                          case 'ai-companion': return 'computeAiCompanion'; // Green
+                          case 'edge': return 'computeEdge'; // Light Blue
+                          case 'GPU': return 'computeGPU'; // Orange
+                          case 'iGPU': return 'computeIGPU'; // Teal/Cyan
+                          case 'NPU': return 'computeNPU'; // Red
+                          case 'CPU': return 'computeCPU'; // Grey
+                          case 'dNPU': return 'computeDNPU'; // Pink
                           default: return 'default';
                         }
                       };
