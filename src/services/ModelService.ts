@@ -17,7 +17,7 @@ import { getSettings, saveSettings } from '../utils/settings';
 
 interface Model {
   id: string;
-  tag: string | null;
+  tags: Array<string> | null;
   capability: string | null;
   isTextToTextModel: boolean;
   baseName: string;
@@ -27,7 +27,7 @@ interface FetchModelsResult {
   success: boolean;
   message: string;
   models?: string[];
-  modelTags?: Record<string, string>;
+  modelTags?: Record<string, Array<string>>;
   modelCapabilities?: Record<string, string>;
   updatedEnabledModels?: Record<string, boolean>;
 }
@@ -63,30 +63,42 @@ export class ModelService {
 
         const mappedModels = data.data.map((model: any) => {
           // Extract compute location tag from model ID
-          let tag = null;
+          let tags = [];
           const id = model.id;
 
-          if (id.startsWith('public-cloud/')) {
-            tag = 'public-cloud';
-          } else if (id.startsWith('private-cloud/')) {
-            tag = 'private-cloud';
-          } else if (id.startsWith('ai-companion/')) {
-            tag = 'ai-companion';
-          } else if (id.startsWith('edge/')) {
-            tag = 'edge';
-          } else if (id.startsWith('GPU/')) {
-            tag = 'GPU';
-          } else if (id.startsWith('iGPU/')) {
-            tag = 'iGPU';
-          } else if (id.startsWith('NPU/')) {
-            tag = 'NPU';
-          } else if (id.startsWith('dNPU/')) {
-            tag = 'dNPU';
-          } else if (id.startsWith('CPU/')) {
-            tag = 'CPU';
-          } else {
-            // If no compute type prefix, assume it's an NPU model
-            tag = 'NPU';
+          const knownTags = [
+            'public-cloud',
+            'private-cloud',
+            'foundry-local',
+            'ollama',
+            'edge',
+            'GPU',
+            'iGPU',
+            'dGPU',
+            'NPU',            
+            'dNPU',
+            'CPU',
+          ]
+
+          let baseName = id;
+
+          while (true) {
+            let anyMatch = false;
+            knownTags.forEach((tag) => {
+              if (baseName.startsWith(tag)) {
+                anyMatch = true;
+                let tagName = tag;
+                if (tagName == 'dGPU') {
+                    tagName = 'iGPU';
+                } else if (tagName == 'foundry-local') {
+                    tagName = 'Foundry Local';
+                }
+                tags.push(tagName);
+                const prefix = `${tag}/`
+                baseName = baseName.substring(prefix.length);
+              }
+            });
+            if (!anyMatch) break;
           }
 
           // Determine if model is a text generation model
@@ -104,24 +116,16 @@ export class ModelService {
             // If capability is a string, check if it contains TextToText
             capability = model.capability;
             isTextToTextModel = capability.includes('TextToText') || capability.includes('TextToTextWithTools');
+          } else {
+            capability = 'TextToTextWithTools';
+            isTextToTextModel = true;
           }
 
           // Extract base model name (without compute prefix)
-          let baseName = id;
-          const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
-          let hasPrefix = false;
-          for (const prefix of prefixes) {
-            if (baseName.startsWith(prefix)) {
-              baseName = baseName.substring(prefix.length);
-              hasPrefix = true;
-              break;
-            }
-          }
-          // If no prefix was found, the baseName is already correct (model without compute prefix)
 
           return {
             id: id,
-            tag: tag,
+            tags: tags,
             capability: capability || null,
             isTextToTextModel: isTextToTextModel,
             baseName: baseName
@@ -149,9 +153,9 @@ export class ModelService {
         const models = Array.from(modelMap.values());
 
         // Create modelTags and modelCapabilities maps
-        const modelTags = models.reduce((acc: Record<string, string>, model: Model) => {
-          if (model.tag) {
-            acc[model.id] = model.tag;
+        const modelTags = models.reduce((acc: Record<string, Array<string>>, model: Model) => {
+          if (model.tags && model.tags.length > 0) {
+            acc[model.id] = model.tags;
           }
           return acc;
         }, {});

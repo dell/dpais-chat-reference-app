@@ -25,6 +25,9 @@ declare module '@mui/material/styles' {
         computeNPU: Palette['primary'];
         computeCPU: Palette['primary'];
         computeDNPU: Palette['primary'];
+        dell: Palette['primary'];
+        microsoft: Palette['primary'];
+        ollama: Palette['primary'];
     }
 
     interface PaletteOptions {
@@ -37,6 +40,9 @@ declare module '@mui/material/styles' {
         computeNPU?: PaletteOptions['primary'];
         computeCPU?: PaletteOptions['primary'];
         computeDNPU?: PaletteOptions['primary'];
+        dell?: PaletteOptions['primary'];
+        microsoft?: PaletteOptions['primary'];
+        ollama?: PaletteOptions['primary'];
     }
 }
 
@@ -51,6 +57,9 @@ declare module '@mui/material/Chip' {
         computeNPU: true;
         computeCPU: true;
         computeDNPU: true;
+        dell: true;
+        microsoft: true;
+        ollama: true;
     }
 }
 

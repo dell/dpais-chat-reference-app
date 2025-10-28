@@ -22,7 +22,7 @@ interface Model {
     name: string;
     enabled: boolean;
     isDefault?: boolean;
-    tag?: string;
+    tags?: Array<string>;
 }
 
 export const ModelSelector: React.FC = () => {
@@ -42,10 +42,10 @@ export const ModelSelector: React.FC = () => {
             if (savedSettings.availableModels && savedSettings.availableModels.length > 0) {
                 const models: Model[] = savedSettings.availableModels.map((modelId: string) => ({
                     id: modelId,
-                    name: getModelDisplayName(modelId),
+                    name: getModelDisplayName(modelId)['name'],
                     enabled: enabledModels[modelId] !== false, // Default to enabled unless explicitly disabled
                     isDefault: modelId === defaultModel,
-                    tag: modelTags[modelId] || null
+                    tags: getModelDisplayName(modelId)['tags'] || modelTags[modelId] || null   
                 }));
                 setAvailableModels(models);
 
@@ -89,27 +89,59 @@ export const ModelSelector: React.FC = () => {
     }, [dispatch, selectedModel]);
 
     // Convert model ID to display name
-    const getModelDisplayName = (modelId: string): string => {
+    const getModelDisplayName = (modelId: string): { name: string, tags: string[] } => {
         // First remove compute-type prefix if present
         let displayName = modelId;
-        const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
-
-        for (const prefix of prefixes) {
-            if (displayName.startsWith(prefix)) {
-                displayName = displayName.substring(prefix.length);
-                break;
-            }
+        let tags: string[] = [];
+        const knownTags = [
+            'dell-ai-factory',
+            'azure-ai-foundry',
+            'foundry-local',
+            'ollama',
+            'edge',
+            'public-cloud',
+            'private-cloud',
+            'GPU',
+            'iGPU',
+            'dGPU',
+            'NPU',            
+            'dNPU',
+            'CPU',
+        ]
+        
+        while (true) {
+            let anyMatch = false;
+            knownTags.forEach((tag) => {
+                if (displayName.startsWith(tag)) {
+                    anyMatch = true;
+                    let tagName = tag;
+                    if (tagName == 'dGPU') {
+                        tagName = 'iGPU';
+                    } else if (tagName == 'dell-ai-factory') {
+                        tagName = 'Dell AI Factory';
+                    } else if (tagName == 'foundry-local') {
+                        tagName = 'Foundry Local';
+                    } else if (tagName == 'azure-ai-foundry') {
+                        tagName = 'Azure AI Foundry';
+                    }
+                    tags.push(tagName);
+                    const prefix = `${tag}/`
+                    displayName = displayName.substring(prefix.length);
+                }
+            });
+            if (!anyMatch) break;
         }
         // If no prefix was found, the displayName is already correct (model without compute prefix)
-
+        // if (tags.length == 0) tags.push('NPU');
+        
         // Then parse remaining model ID for the name part
         const parts = displayName.split(':');
         if (parts.length >= 2) {
             // Just return the model name part, without the parameter size
             const model = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-            return model;
+            return { name: model, tags: tags };
         }
-        return displayName;
+        return { name: displayName, tags: tags };
     };
 
     // Extract parameter size from model ID if present
@@ -126,14 +158,18 @@ export const ModelSelector: React.FC = () => {
         dispatch(setCurrentModel(modelId));
     };
 
-    // Only show enabled models and sort alphabetically by model name
+    // Only show enabled models and sort alphabetically by provider/resource type, then by model name
     const enabledModels = availableModels
         .filter(model => model.enabled)
         .sort((a, b) => {
             // Get display names without compute type prefix
-            const nameA = getModelDisplayName(a.id).toLowerCase();
-            const nameB = getModelDisplayName(b.id).toLowerCase();
-            return nameA.localeCompare(nameB);
+            const modA = getModelDisplayName(a.id);
+            const modB = getModelDisplayName(b.id);
+            const providerA = modA['tags'][0]?.toLowerCase();
+            const providerB = modB['tags'][0]?.toLowerCase();
+            const nameA = modA['name'].toLowerCase();
+            const nameB = modB['name'].toLowerCase();
+            return providerA?.localeCompare(providerB) || nameA.localeCompare(nameB);
         });
 
     // Helper function to get tag color based on compute location
@@ -143,6 +179,14 @@ export const ModelSelector: React.FC = () => {
                 return 'computePublicCloud'; // Blue
             case 'private-cloud':
                 return 'computePrivateCloud'; // Purple
+            case 'Dell AI Factory':
+                return 'dell'; // Dell Blue
+            case 'Foundry Local':
+                return 'microsoft'; // Microsoft Blue
+            case 'Azure AI Foundry':
+                return 'microsoft'; // Microsoft Blue
+            case 'ollama':
+                return 'ollama'; // Black
             case 'ai-companion':
                 return 'computeAiCompanion'; // Green
             case 'edge':
@@ -151,6 +195,8 @@ export const ModelSelector: React.FC = () => {
                 return 'computeGPU'; // Orange
             case 'iGPU':
                 return 'computeIGPU'; // Teal/Cyan
+            case 'dGPU':
+                return 'computeGPU'; // Orange
             case 'NPU':
                 return 'computeNPU'; // Red
             case 'CPU':
@@ -180,8 +226,8 @@ export const ModelSelector: React.FC = () => {
                 labelId="model-select-label"
                 label="Model"
                 sx={{
-                    width: '18vw',
-                    maxWidth: '400px',
+                    width: '24vw',
+                    maxWidth: '600px',
                     height: '6vh'
                 }}
                 value={selectedModel}
@@ -240,22 +286,23 @@ export const ModelSelector: React.FC = () => {
                                             }}
                                         />
                                     )}
-                                    {model.tag && (
+                                    {model.tags?.map((singleTag, index) => (
                                         <Chip
+                                            key={index}
                                             size="small"
-                                            label={model.tag}
-                                            color={getTagColor(model.tag) as any}
+                                            label={singleTag}
+                                            color={getTagColor(singleTag) as any}
                                             variant="outlined"
-                                            sx={{
-                                                height: 18,
-                                                fontSize: '0.65rem',
-                                                '& .MuiChip-label': {
-                                                    px: 0.8,
-                                                    py: 0
-                                                }
-                                            }}
+                                            sx={{ 
+                                                    height: 18, 
+                                                    fontSize: '0.65rem',
+                                                    '& .MuiChip-label': { 
+                                                        px: 0.8,
+                                                        py: 0
+                                                    }
+                                                }}
                                         />
-                                    )}
+                                    ))}
                                     {paramSize && (
                                         <Chip
                                             size="small"

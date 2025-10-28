@@ -127,7 +127,7 @@ export interface AppSettings {
   ttsModel?: string;
   ttsVoice?: string;
   vectorDbConfigs?: any[];
-  modelTags?: Record<string, string>;
+  modelTags?: Record<string, Array<string>>;
   modelCapabilities?: Record<string, string>;
   downloadsPath?: string;
   companyDocumentsEnabled?: boolean;
@@ -253,6 +253,49 @@ export const Settings: React.FC<SettingsProps> = ({
       ...prev,
       customTheme: { ...DEFAULT_THEMES[preset] }
     }));
+  };
+
+  // Convert model ID to display name
+  const getModelDisplayName = (modelId: string): { name: string, tags: string[] } => {
+      // First remove compute-type prefix if present
+      let displayName = modelId;
+      let tags: string[] = [];
+      const knownTags = [
+          'public-cloud',
+          'private-cloud',
+          'foundry-local',
+          'ollama',
+          'edge',
+          'GPU',
+          'iGPU',
+          'dGPU',
+          'NPU',            
+          'dNPU',
+          'CPU',
+      ]
+      
+      while (true) {
+          let anyMatch = false;
+          knownTags.forEach((tag) => {
+              if (displayName.startsWith(tag)) {
+                  anyMatch = true;
+                  tags.push(tag == 'dGPU' ? 'iGPU' : tag);
+                  const prefix = `${tag}/`
+                  displayName = displayName.substring(prefix.length);
+              }
+          });
+          if (!anyMatch) break;
+      }
+      // If no prefix was found, the displayName is already correct (model without compute prefix)
+      
+      // Then parse remaining model ID for the name part
+      const parts = displayName.split(':');
+      if (parts.length >= 2) {
+          // Just return the model name part, without the parameter size
+          const model = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+          return { name: model, tags: tags };
+      }
+      return { name: displayName, tags: tags };
   };
 
   const fetchModels = async (silent = false) => {
@@ -606,19 +649,60 @@ export const Settings: React.FC<SettingsProps> = ({
 
                 <Paper variant="outlined" sx={{ maxHeight: '300px', overflow: 'auto', p: 1 }}>
                   <List dense sx={{ width: '100%' }}>
-                    {(availableModels.length > 0 ? availableModels : (settings.availableModels || [])).map((modelId) => {
+                    {(availableModels.length > 0 ? availableModels : (settings.availableModels || []))
+                      .sort((a, b) => {
+                          // Get display names without compute type prefix
+                          const modA = getModelDisplayName(a);
+                          const modB = getModelDisplayName(b);
+                          const providerA = modA['tags'][0]?.toLowerCase();
+                          const providerB = modB['tags'][0]?.toLowerCase();
+                          const nameA = modA['name'].toLowerCase();
+                          const nameB = modB['name'].toLowerCase();
+                          return providerA?.localeCompare(providerB) || nameA.localeCompare(nameB);
+                      }).map((modelId) => {
                       // Get display name without compute type prefix and without parameter size
                       let displayName = modelId;
-                      const prefixes = ['public-cloud/', 'private-cloud/', 'ai-companion/', 'edge/', 'GPU/', 'iGPU/', 'NPU/', 'CPU/', 'dNPU/'];
                       let hasPrefix = false;
+                      let tags: string[] = [];
+                      const knownTags = [
+                        'dell-ai-factory',
+                        'azure-ai-foundry',
+                        'foundry-local',
+                        'ollama',
+                        'edge',
+                        'public-cloud',
+                        'private-cloud',
+                        'GPU',
+                        'iGPU',
+                        'dGPU',
+                        'NPU',            
+                        'dNPU',
+                        'CPU',
+                      ];
 
-                      for (const prefix of prefixes) {
-                        if (displayName.startsWith(prefix)) {
-                          displayName = displayName.substring(prefix.length);
-                          hasPrefix = true;
-                          break;
-                        }
+                      while (true) {
+                        let anyMatch = false;
+                        knownTags.forEach((tag) => {
+                          if (displayName.startsWith(tag)) {
+                              anyMatch = true;
+                              let tagName = tag;
+                              if (tagName == 'dGPU') {
+                                  tagName = 'iGPU';
+                              } else if (tagName == 'dell-ai-factory') {
+                                  tagName = 'Dell AI Factory';
+                              } else if (tagName == 'foundry-local') {
+                                  tagName = 'Foundry Local';
+                              } else if (tagName == 'azure-ai-foundry') {
+                                  tagName = 'Azure AI Foundry';
+                              }
+                              tags.push(tagName);
+                              const prefix = `${tag}/`
+                              displayName = displayName.substring(prefix.length);
+                          }
+                        });
+                        if (!anyMatch) break;
                       }
+
                       // If no prefix was found, the displayName is already correct (model without compute prefix)
 
                       // Extract the model name and parameter size
@@ -640,8 +724,8 @@ export const Settings: React.FC<SettingsProps> = ({
                       const isDefault = settings.defaultModel === modelId;
 
                       // Get compute location tag if available
-                      // If tag is not available in settings but we know it doesn't have a prefix, assume NPU
-                      const tag = settings.modelTags?.[modelId] || (!hasPrefix ? 'NPU' : undefined);
+                      // // If tag is not available in settings but we know it doesn't have a prefix, assume NPU
+                      // const tags = settings.modelTags?.[modelId] || (!hasPrefix ? ['NPU'] : undefined);
 
                       // Get model capability (if available)
                       const capability = settings.modelCapabilities?.[modelId];
@@ -650,19 +734,39 @@ export const Settings: React.FC<SettingsProps> = ({
                       const canBeToggled = capability && (capability.includes('TextToText') || capability.includes('TextToTextWithTools'));
 
                       // Helper function to get tag color based on compute location
-                      const getTagColor = (tagValue: string): string => {
-                        switch (tagValue) {
-                          case 'public-cloud': return 'computePublicCloud'; // Blue
-                          case 'private-cloud': return 'computePrivateCloud'; // Purple
-                          case 'ai-companion': return 'computeAiCompanion'; // Green
-                          case 'edge': return 'computeEdge'; // Light Blue
-                          case 'GPU': return 'computeGPU'; // Orange
-                          case 'iGPU': return 'computeIGPU'; // Teal/Cyan
-                          case 'NPU': return 'computeNPU'; // Red
-                          case 'CPU': return 'computeCPU'; // Grey
-                          case 'dNPU': return 'computeDNPU'; // Pink
-                          default: return 'default';
-                        }
+                      const getTagColor = (tag: string): string => {
+                          switch (tag) {
+                            case 'public-cloud':
+                                return 'computePublicCloud'; // Blue
+                            case 'private-cloud':
+                                return 'computePrivateCloud'; // Purple
+                            case 'Dell AI Factory':
+                                return 'dell'; // Dell Blue
+                            case 'Foundry Local':
+                                return 'microsoft'; // Microsoft Blue
+                            case 'Azure AI Foundry':
+                                return 'microsoft'; // Microsoft Blue
+                            case 'ollama':
+                                return 'ollama'; // Black
+                            case 'ai-companion':
+                                return 'computeAiCompanion'; // Green
+                            case 'edge':
+                                return 'computeEdge'; // Light Blue
+                            case 'GPU':
+                                return 'computeGPU'; // Orange
+                            case 'iGPU':
+                                return 'computeIGPU'; // Teal/Cyan
+                            case 'dGPU':
+                                return 'computeGPU'; // Orange
+                            case 'NPU':
+                                return 'computeNPU'; // Red
+                            case 'CPU':
+                                return 'computeCPU'; // Grey
+                            case 'dNPU':
+                                return 'computeDNPU'; // Pink
+                            default:
+                                return 'default';
+                          }
                       };
 
                       return (
@@ -728,15 +832,16 @@ export const Settings: React.FC<SettingsProps> = ({
                             alignItems: 'center',
                             pl: 0
                           }}>
-                            {tag && (
+                            {(Array.isArray(tags) ? tags : [tags]).map((singleTag, index) => (
                               <Chip
+                                key={index}
                                 size="small"
-                                label={tag}
-                                color={getTagColor(tag) as any}
+                                label={singleTag}
+                                color={getTagColor(singleTag) as any}
                                 variant="outlined"
                                 sx={{ height: 20, fontSize: '0.65rem' }}
                               />
-                            )}
+                            ))}
                             {paramSize && (
                               <Chip
                                 size="small"
