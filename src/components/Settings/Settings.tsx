@@ -206,7 +206,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
     // Set document settings
     setDocumentChunkSize(savedSettings.documentChunkSize || 1000);
-    setDocumentOverlap(savedSettings.documentOverlap || 200);
+    setDocumentOverlap(savedSettings.documentChunkSize/4 || savedSettings.documentOverlap || 1000/4);
     setMaxDocumentsRetrieved(savedSettings.maxDocumentsRetrieved || 5);
 
     // Also set available models from cached settings
@@ -1209,8 +1209,52 @@ export const Settings: React.FC<SettingsProps> = ({
                       sx={{ width: '100%' }}
                     />
                   </Box>
+                  <Divider sx={{ my: 2 }} />
+
+                  <Typography variant="subtitle2" gutterBottom>
+                    Chunk Size (tokens) for RAG
+                    <Tooltip title="Maximum size of a document chunk to embed and retrieve for Retrieval Augmented Generation (RAG).">
+                      <IconButton size="small" sx={{ ml: 1 }}>
+                        <InfoIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Box sx={{ px: 2 }}>
+                    <Slider
+                      value={documentChunkSize || 1000}
+                      onChange={(_e, value) => {
+                        const newValue = value as number;
+                        setDocumentChunkSize(newValue);
+                        setDocumentOverlap(newValue/4);
+                        // Auto-save on slider change with the new value
+                        setTimeout(() => {
+                          const updatedSettings = {
+                            ...settings,
+                            documentChunkSize: newValue,
+                          };
+                          localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
+                          onSave(updatedSettings);
+                          window.dispatchEvent(new CustomEvent('settings-updated'));
+                        }, 300);
+                      }}
+                      min={250}
+                      max={4000}
+                      step={250}
+                      marks={[
+                        { value: 250, label: '250' },
+                        { value: 500, label: '500' },
+                        { value: 1000, label: '1000' },
+                        { value: 2000, label: '2000' },
+                        { value: 4000, label: '4000' }
+                      ]}
+                      valueLabelDisplay="on"
+                      sx={{ width: '100%' }}
+                    />
+                  </Box>
                   <Typography variant="body2" color="text.secondary">
-                    Current setting: {maxDocumentsRetrieved} chunks will be retrieved for RAG queries
+                    Current setting: Chunks of {documentChunkSize} tokens will be split, embedded, and retrieved for RAG documents
                   </Typography>
                 </Box>
               </AccordionDetails>

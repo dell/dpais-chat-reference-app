@@ -36,7 +36,7 @@ logger = logging.getLogger('pdf_to_pgvector')
 
 # Constants
 CHUNK_SIZE = 1000
-CHUNK_OVERLAP = 200
+CHUNK_OVERLAP = 250
 DEFAULT_EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "nomic-embed-text")
 DEFAULT_EMBEDDINGS_DIMENSIONS = 768  # nomic-embed-text dimensions
 DEFAULT_OPENAI_API = os.getenv("OPENAI_API_BASE", "http://localhost:8553/v1")

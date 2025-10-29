@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   availableModels: [],
   systemMessage: '',
   documentChunkSize: 1000,
-  documentOverlap: 200,
+  documentOverlap: 1000/4,
   maxDocumentsRetrieved: 5,
   downloadsPath: '',
   companyDocumentsEnabled: false,
