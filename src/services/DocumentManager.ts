@@ -81,10 +81,14 @@ export class DocumentManager {
     // Store the main document
     const db = await getDB();
     await db.documents.insert(document);
+
+    const settings = getSettings();
+    const chunkSize = settings.documentChunkSize || 1000;
+    const chunkOverlap = settings.documentOverlap || 250;
     
     // Process the document in chunks
-    const chunks = this.chunkText(content);
-    console.log(`Document chunked into ${chunks.length} pieces`);
+    const chunks = this.chunkText(content, chunkSize, chunkOverlap);
+    console.log(`Document chunked into ${chunks.length} pieces of max size ${chunkSize} with overlap ${chunkOverlap}`);
     
     // Track processing progress and timing
     const startTime = Date.now();
@@ -94,7 +98,6 @@ export class DocumentManager {
     let processingRates: number[] = [];
     
     // Get batch size from settings (default to 20 if not set)
-    const settings = getSettings();
     const BATCH_SIZE = settings.documentProcessingBatchSize || 20;
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       try {
@@ -668,7 +671,7 @@ export class DocumentManager {
    * @param maxChunkSize Maximum characters per chunk
    * @param overlap Number of characters to overlap between chunks
    */
-  private static chunkText(text: string, maxChunkSize = 1000, overlap = 200): string[] {
+  private static chunkText(text: string, maxChunkSize = 1000, overlap = 250): string[] {
     const chunks: string[] = [];
     
     if (text.length <= maxChunkSize) {
@@ -686,10 +689,11 @@ export class DocumentManager {
         const breakPointPattern = /[.!?][\s\n]/g;
         let lastBreakPoint = -1;
         let match;
+        const searchWidth = Math.min(overlap / 2, 200);
         
         // Create a search window around the desired break point
-        const searchArea = text.substring(Math.max(0, end - 200), Math.min(text.length, end + 200));
-        const searchOffset = Math.max(0, end - 200);
+        const searchArea = text.substring(Math.max(0, end - searchWidth), Math.min(text.length, end + searchWidth));
+        const searchOffset = Math.max(0, end - searchWidth);
         
         // Find the last sentence break in the search window
         while ((match = breakPointPattern.exec(searchArea)) !== null) {
@@ -702,9 +706,9 @@ export class DocumentManager {
           end = lastBreakPoint;
         } else {
           // If no sentence break, try to find a space or newline
-          const spaceNearEnd = text.substring(end - 100, end + 100).search(/[\s\n]/);
+          const spaceNearEnd = text.substring(end - (searchWidth / 2), end + (searchWidth / 2)).search(/[\s\n]/);
           if (spaceNearEnd !== -1) {
-            end = end - 100 + spaceNearEnd + 1;
+            end = end - (searchWidth / 2) + spaceNearEnd + 1;
           }
         }
       }
@@ -724,7 +728,7 @@ export class DocumentManager {
     
     // Use settings or defaults for chunk size and overlap
     const chunkSize = settings.documentChunkSize || 1000;
-    const chunkOverlap = settings.documentOverlap || 200;
+    const chunkOverlap = settings.documentOverlap || 250;
     
     // Process document with these values
     // ...existing processing code...
