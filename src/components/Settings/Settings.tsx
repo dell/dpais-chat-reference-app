@@ -269,11 +269,11 @@ export const Settings: React.FC<SettingsProps> = ({
           'GPU',
           'iGPU',
           'dGPU',
-          'NPU',            
+          'NPU',
           'dNPU',
           'CPU',
       ]
-      
+
       while (true) {
           let anyMatch = false;
           knownTags.forEach((tag) => {
@@ -287,7 +287,7 @@ export const Settings: React.FC<SettingsProps> = ({
           if (!anyMatch) break;
       }
       // If no prefix was found, the displayName is already correct (model without compute prefix)
-      
+
       // Then parse remaining model ID for the name part
       const parts = displayName.split(':');
       if (parts.length >= 2) {
@@ -366,7 +366,7 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   // Save settings without closing the dialog - used for auto-save features
-  const saveSettings = (closeAfterSave = false) => {  
+  const saveSettings = (closeAfterSave = false) => {
     const updatedSettings = {
       ...settings,
       systemMessage,
@@ -388,11 +388,11 @@ export const Settings: React.FC<SettingsProps> = ({
     window.dispatchEvent(new CustomEvent('settings-updated'));
 
     onSave(updatedSettings);
-    
+
     if (closeAfterSave) {
       onClose();
     }
-    
+
     return updatedSettings;
   };
 
@@ -675,7 +675,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         'GPU',
                         'iGPU',
                         'dGPU',
-                        'NPU',            
+                        'NPU',
                         'dNPU',
                         'CPU',
                       ];
@@ -1325,7 +1325,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     </Tooltip>
                   </Typography>
                   <Divider sx={{ my: 2 }} />
-                  
+
                   <Box sx={{ px: 2 }}>
                     <Slider
                       value={documentChunkSize || 1000}
@@ -1338,6 +1338,7 @@ export const Settings: React.FC<SettingsProps> = ({
                           const updatedSettings = {
                             ...settings,
                             documentChunkSize: newValue,
+                            documentOverlap: newValue/4
                           };
                           localStorage.setItem('chatAppSettings', JSON.stringify(updatedSettings));
                           onSave(updatedSettings);
