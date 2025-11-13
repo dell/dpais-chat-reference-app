@@ -208,7 +208,7 @@ export const WelcomeScreen: React.FC = () => {
         <Box className="welcome-screen">
           <Typography variant="h2" className="welcome-main-title">
             <AutoAwesomeIcon fontSize="large" className="title-icon" sx={{ color: 'primary.main', mr: 2 }} />
-            Dell Pro AI Studio Chat
+            Dell AI PC Chat
           </Typography>
           
           <Typography variant="h4" className="welcome-subtitle" sx={{ color: 'text.secondary', margin: 4 }}>

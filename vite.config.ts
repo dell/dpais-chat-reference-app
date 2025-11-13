@@ -15,9 +15,9 @@ export default defineConfig({
     },
 
     manifest: {
-      name: 'Dell Pro AI Studio Chat',
-      short_name: 'Dell Pro AI Studio Chat',
-      description: 'Chat Template for Dell Pro AI Studio',
+      name: 'Dell AI PC Chat',
+      short_name: 'Dell AI PC Chat',
+      description: 'Chat Template for Dell AI Framework',
       theme_color: '#0D2155',
       background_color: '#ffffff',
       display: 'standalone',
@@ -60,7 +60,7 @@ export default defineConfig({
             },
           },
         },
-        // Cache API calls to Dell Pro AI Studio (local OpenAI server)
+        // Cache API calls to Dell AI Framework (local OpenAI server)
         {
           urlPattern: /^http:\/\/localhost:\d+\/v1\/.*/,
           handler: 'NetworkFirst',
