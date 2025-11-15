@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <br />
-<h3 align="center">Dell Validated Designs for AI PCs<br /><strong>Dell Pro AI Studio Chat</strong></h3>
+<h3 align="center">Dell Validated Designs for AI PCs<br /><strong>Dell AI PC Chat</strong></h3>
 
 <p>
     Dell <a href="https://www.dell.com/en-us/lp/dt/workloads-validated-designs">Validated Designs</a> for AI PCs 

@@ -210,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSettings }) => {
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Dell Pro AI Studio Chat
+            Dell AI PC Chat
           </Typography>
           <Tooltip title={isCurrentSessionEmpty ? "Enter a message first" : "New Chat"}>
             <span> {/* Wrapper needed for disabled Tooltip */}

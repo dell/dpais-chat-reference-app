@@ -1,7 +1,7 @@
 {
-  "name": "Dell Pro AI Studio Chat",
+  "name": "Dell AI PC Chat",
   "short_name": "Dell Pro AI Chat",
-  "description": "Chat Template for Dell Pro AI Studio - Fully offline capable PWA",
+  "description": "Chat Template for Dell AI Framework - Fully offline capable PWA",
   "theme_color": "#0D2155",
   "background_color": "#ffffff",
   "display": "standalone",

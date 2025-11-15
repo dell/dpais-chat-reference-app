@@ -145,6 +145,18 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
         main: '#c2185b', // Pink
         contrastText: '#ffffff',
       },
+      dell: {
+        main: '#0076CE', // Dell Blue
+        contrastText: '#ffffff',
+      },
+      microsoft: {
+        main: '#00A4EF', // Microsoft Blue
+        contrastText: '#ffffff',
+      },
+      ollama: {
+        main: '#000000', // Black
+        contrastText: '#ffffff',
+      }
     },
     typography: {
       fontFamily: '"Inter", "Segoe UI", "Roboto", "Oxygen", sans-serif',

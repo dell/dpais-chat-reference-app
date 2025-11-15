@@ -102,7 +102,7 @@ export const MobileLanding: React.FC = () => {
 
           {/* Title */}
           <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Welcome to Dell Pro AI Studio Chat
+            Welcome to Dell AI PC Chat
           </Typography>
 
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
@@ -113,7 +113,7 @@ export const MobileLanding: React.FC = () => {
 
           {/* Main message */}
           <Typography variant="body1" paragraph sx={{ textAlign: 'left' }}>
-            In order to use Dell Pro AI Studio Chat, you need to be on a Dell AI PC.
+            In order to use Dell AI PC Chat, you need to be on a Dell AI PC.
           </Typography>
 
           {/* Purchase AI PC Section */}
