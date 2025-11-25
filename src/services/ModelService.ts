@@ -88,9 +88,7 @@ export class ModelService {
               if (baseName.startsWith(tag)) {
                 anyMatch = true;
                 let tagName = tag;
-                if (tagName == 'dGPU') {
-                    tagName = 'iGPU';
-                } else if (tagName == 'foundry-local') {
+                if (tagName == 'foundry-local') {
                     tagName = 'Foundry Local';
                 }
                 tags.push(tagName);
