@@ -133,6 +133,10 @@ export function createThemeOptions(config: ThemeConfig): ThemeOptions {
         main: '#00897b', // Teal/Cyan - distinct from GPU orange
         contrastText: '#ffffff',
       },
+      computeDGPU: {
+        main: '#7b1fa2', // Purple - distinct from iGPU teal
+        contrastText: '#ffffff',
+      },
       computeNPU: {
         main: '#d32f2f', // Red
         contrastText: '#ffffff',

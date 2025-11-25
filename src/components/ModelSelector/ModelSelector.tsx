@@ -115,9 +115,7 @@ export const ModelSelector: React.FC = () => {
                 if (displayName.startsWith(tag)) {
                     anyMatch = true;
                     let tagName = tag;
-                    if (tagName == 'dGPU') {
-                        tagName = 'iGPU';
-                    } else if (tagName == 'dell-ai-factory') {
+                    if (tagName == 'dell-ai-factory') {
                         tagName = 'Dell AI Factory';
                     } else if (tagName == 'foundry-local') {
                         tagName = 'Foundry Local';
@@ -196,7 +194,7 @@ export const ModelSelector: React.FC = () => {
             case 'iGPU':
                 return 'computeIGPU'; // Teal/Cyan
             case 'dGPU':
-                return 'computeGPU'; // Orange
+                return 'computeDGPU'; // Purple/Darker Orange
             case 'NPU':
                 return 'computeNPU'; // Red
             case 'CPU':

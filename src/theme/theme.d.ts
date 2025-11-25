@@ -22,6 +22,7 @@ declare module '@mui/material/styles' {
         computeEdge: Palette['primary'];
         computeGPU: Palette['primary'];
         computeIGPU: Palette['primary'];
+        computeDGPU: Palette['primary'];
         computeNPU: Palette['primary'];
         computeCPU: Palette['primary'];
         computeDNPU: Palette['primary'];
@@ -37,6 +38,7 @@ declare module '@mui/material/styles' {
         computeEdge?: PaletteOptions['primary'];
         computeGPU?: PaletteOptions['primary'];
         computeIGPU?: PaletteOptions['primary'];
+        computeDGPU?: PaletteOptions['primary'];
         computeNPU?: PaletteOptions['primary'];
         computeCPU?: PaletteOptions['primary'];
         computeDNPU?: PaletteOptions['primary'];
@@ -54,6 +56,7 @@ declare module '@mui/material/Chip' {
         computeEdge: true;
         computeGPU: true;
         computeIGPU: true;
+        computeDGPU: true;
         computeNPU: true;
         computeCPU: true;
         computeDNPU: true;
